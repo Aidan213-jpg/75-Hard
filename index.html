@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="75 Hard">
+<meta name="theme-color" content="#0a0a1a">
+<link rel="manifest" href="manifest.json">
+<title>75 Hard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a1a;--card:#13132a;--border:#1e1e3f;--text:#e8e8f5;--sub:#7777aa;
+  --red:#e94560;--teal:#00c9a7;--blue:#4a9eff;--gold:#f5c842;
+  --p1:#4a9eff;--p2:#00c9a7;--p3:#e94560;
+  --nav-h:68px;--hdr-h:64px;--accent:var(--red);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto}
+
+/* PROFILE PICKER */
+#picker{position:fixed;inset:0;background:var(--bg);z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+#picker.hidden{display:none}
+.pk-title{font-size:11px;font-weight:800;letter-spacing:4px;color:var(--sub);
+  text-transform:uppercase;margin-bottom:8px}
+.pk-sub{font-size:24px;font-weight:900;color:var(--text);margin-bottom:48px;text-align:center;line-height:1.2}
+.pk-cards{display:flex;flex-direction:column;gap:14px;width:100%;max-width:300px}
+.pk-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;
+  padding:20px 22px;cursor:pointer;transition:border-color .2s,background .2s;
+  display:flex;align-items:center;gap:16px;-webkit-user-select:none;user-select:none}
+.pk-card:active{transform:scale(0.97)}
+.pk-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:22px;font-weight:900;flex-shrink:0}
+.pk-av-a{background:rgba(233,69,96,.15);color:var(--red);border:2px solid rgba(233,69,96,.3)}
+.pk-av-t{background:rgba(0,201,167,.15);color:var(--teal);border:2px solid rgba(0,201,167,.3)}
+.pk-name{font-size:20px;font-weight:800;color:var(--text)}
+.pk-desc{font-size:12px;color:var(--sub);margin-top:3px}
+.pk-arrow{font-size:18px;color:var(--sub);margin-left:auto}
+
+/* HEADER */
+#hdr{height:var(--hdr-h);min-height:var(--hdr-h);
+  background:rgba(10,10,26,0.97);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;z-index:10}
+#hdr-left{display:flex;flex-direction:column}
+#hdr-brand{font-size:10px;font-weight:800;letter-spacing:3px;color:var(--sub);text-transform:uppercase}
+#hdr-day{font-size:17px;font-weight:800;color:var(--text);line-height:1.2;margin-top:1px}
+#hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.phase-badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 9px;
+  border-radius:20px;white-space:nowrap}
+#streak-hdr{font-size:11px;color:var(--sub)}
+#switch-btn{display:flex;align-items:center;gap:5px;background:rgba(119,119,170,.1);
+  border:0.5px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;
+  font-size:11px;font-weight:700;color:var(--sub);margin-top:4px;-webkit-user-select:none;user-select:none}
+#switch-btn:active{background:rgba(119,119,170,.2)}
+
+/* CONTENT */
+#content{flex:1;overflow:hidden;position:relative}
+.tab-panel{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;padding:14px 14px calc(var(--nav-h)+14px);display:none}
+.tab-panel.active{display:block}
+
+/* BOTTOM NAV */
+#nav{height:var(--nav-h);min-height:var(--nav-h);
+  background:rgba(10,10,26,0.98);backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);display:flex;align-items:stretch;z-index:10}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;cursor:pointer;background:none;border:none;color:var(--sub);
+  font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding-bottom:6px;transition:color .2s;-webkit-user-select:none;user-select:none}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:23px;transition:transform .2s;line-height:1}
+.nav-btn.active .nav-icon{transform:scale(1.15)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+
+/* TODAY */
+#ring-wrap{display:flex;justify-content:center;padding:6px 0 2px}
+#ring-bg{fill:none;stroke:var(--border);stroke-width:11}
+#ring-fg{fill:none;stroke:var(--teal);stroke-width:11;stroke-linecap:round;
+  transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .5s ease,stroke .3s}
+#ring-num{font-size:30px;font-weight:900;fill:var(--text);text-anchor:middle;dominant-baseline:central}
+#ring-sub{font-size:10px;fill:var(--sub);text-anchor:middle;dominant-baseline:central;
+  font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.rule-card{background:var(--card);border:1px solid var(--border);border-radius:13px;
+  display:flex;align-items:center;gap:13px;padding:13px 14px;margin-bottom:8px;
+  cursor:pointer;transition:background .15s,border-color .15s;
+  -webkit-user-select:none;user-select:none}
+.rule-card:active{transform:scale(0.98)}
+.rule-card.done{background:rgba(0,201,167,.07);border-color:rgba(0,201,167,.28)}
+.rule-icon{font-size:22px;width:28px;text-align:center;flex-shrink:0}
+.rule-info{flex:1;min-width:0}
+.rule-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.2}
+.rule-desc{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.35}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:all .2s}
+.rule-card.done .chk{background:var(--teal);border-color:var(--teal)}
+.chk-mark{color:#fff;font-size:13px;font-weight:900;opacity:0;transition:opacity .2s}
+.rule-card.done .chk-mark{opacity:1}
+#banner{display:none;background:linear-gradient(135deg,rgba(0,201,167,.1),rgba(245,200,66,.08));
+  border:1px solid rgba(0,201,167,.35);border-radius:14px;padding:18px;
+  text-align:center;margin-bottom:10px}
+#banner.show{display:block;animation:pop .35s ease}
+.b-emoji{font-size:38px}.b-msg{font-size:16px;font-weight:900;color:var(--teal);margin-top:6px}
+.b-sub{font-size:12px;color:var(--sub);margin-top:4px}
+#pre-card{text-align:center;padding:32px 20px}
+#pre-days{font-size:64px;font-weight:900;line-height:1;color:var(--text)}
+#pre-lbl{font-size:13px;color:var(--sub);margin-top:4px}
+#pre-start{font-size:15px;font-weight:700;color:var(--teal);margin-top:10px}
+
+/* WORKOUT */
+.focus-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  font-size:12px;font-weight:700;margin-bottom:10px;
+  background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.2)}
+.wo-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1px;
+  padding:4px 11px;border-radius:20px;margin-bottom:10px}
+.b-run{background:rgba(233,69,96,.14);color:var(--red);border:1px solid rgba(233,69,96,.3)}
+.b-swim{background:rgba(0,201,167,.14);color:var(--teal);border:1px solid rgba(0,201,167,.3)}
+.b-bike{background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3)}
+.b-lift{background:rgba(74,158,255,.12);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.b-climb{background:rgba(168,85,247,.14);color:#c084fc;border:1px solid rgba(168,85,247,.3)}
+.b-walk{background:rgba(107,203,119,.14);color:#6bcb77;border:1px solid rgba(107,203,119,.3)}
+.b-default{background:rgba(119,119,170,.12);color:var(--sub);border:1px solid rgba(119,119,170,.3)}
+.wo-title{font-size:19px;font-weight:800;color:var(--text);margin-bottom:10px;line-height:1.25}
+.wo-steps{display:flex;flex-direction:column;gap:6px}
+.wo-step{background:rgba(255,255,255,.03);border-radius:8px;padding:9px 11px;
+  border-left:3px solid var(--border);font-size:13px;color:var(--text);line-height:1.45}
+.step-run{border-left-color:var(--red)}.step-swim{border-left-color:var(--teal)}
+.step-bike{border-left-color:var(--gold)}.step-lift{border-left-color:var(--blue)}
+.step-walk{border-left-color:#6bcb77}.step-wu{border-left-color:#5d8ab3}
+.easy-card .easy-lbl{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
+.easy-card .easy-txt{font-size:14px;font-weight:600;color:var(--text)}
+
+/* PROGRESS */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 12px;text-align:center}
+.stat-num{font-size:36px;font-weight:900;line-height:1}
+.stat-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:4px}
+.pbar-wrap{height:10px;background:var(--border);border-radius:20px;overflow:hidden;margin:8px 0 4px}
+.pbar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p1),var(--p2));transition:width .7s ease}
+.cal-grid{display:grid;grid-template-columns:repeat(11,1fr);gap:3px;margin-top:8px}
+.cal-dot{aspect-ratio:1;border-radius:3px;background:rgba(30,30,63,.8)}
+.cal-dot.done{background:var(--teal)}.cal-dot.partial{background:rgba(245,200,66,.55)}
+.cal-dot.today-dot{outline:2px solid var(--red);outline-offset:1px}
+.cal-dot.future{background:rgba(20,20,50,.5)}
+.r-stat{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(30,30,63,.7)}
+.r-stat:last-child{border-bottom:none}
+.r-stat-bar{width:70px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
+.r-stat-fill{height:100%;border-radius:3px;background:var(--teal)}
+.r-stat-pct{font-size:11px;color:var(--sub);width:28px;text-align:right;flex-shrink:0}
+
+/* PROTEIN TRACKER */
+#pt-wrap{display:flex;justify-content:center;padding:10px 0 4px}
+#pt-bg{fill:none;stroke:var(--border);stroke-width:11}
+#pt-fg{fill:none;stroke:var(--red);stroke-width:11;stroke-linecap:round;
+  transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .5s ease,stroke .3s}
+#pt-num{font-size:32px;font-weight:900;fill:var(--text);text-anchor:middle;dominant-baseline:central}
+#pt-unit{font-size:11px;fill:var(--sub);text-anchor:middle;dominant-baseline:central}
+#pt-lbl{font-size:9px;fill:var(--sub);text-anchor:middle;dominant-baseline:central;letter-spacing:1.5px;text-transform:uppercase}
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px}
+.q-btn{background:var(--card);border:1px solid var(--border);border-radius:11px;
+  padding:10px 11px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  -webkit-user-select:none;user-select:none;transition:background .15s,border-color .15s}
+.q-btn:active{background:rgba(0,201,167,.08);border-color:rgba(0,201,167,.3)}
+.q-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.25;flex:1}
+.q-g{font-size:13px;font-weight:800;color:var(--teal);flex-shrink:0;margin-left:6px}
+.cust-row{display:flex;gap:7px;margin-bottom:4px;align-items:stretch}
+.cust-food{flex:1;background:var(--card);border:1px solid var(--border);border-radius:9px;
+  padding:9px 10px;font-size:13px;color:var(--text);outline:none;min-width:0}
+.cust-food:focus{border-color:var(--teal)}
+.cust-g{width:58px;background:var(--card);border:1px solid var(--border);border-radius:9px;
+  padding:9px 8px;font-size:13px;color:var(--text);outline:none;text-align:center}
+.cust-g:focus{border-color:var(--teal)}
+.cust-add{background:var(--teal);border:none;border-radius:9px;padding:9px 13px;
+  font-size:13px;font-weight:800;color:#0a0a1a;cursor:pointer;flex-shrink:0}
+.p-entry{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);
+  border-radius:11px;padding:10px 13px;margin-bottom:7px}
+.p-entry-lbl{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.p-entry-time{font-size:11px;color:var(--sub);margin-top:2px}
+.p-grams{font-size:15px;font-weight:800;color:var(--teal);margin-right:10px;flex-shrink:0}
+.p-del{background:none;border:none;color:var(--sub);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1}
+.p-del:active{color:var(--red)}
+.p-empty{text-align:center;padding:18px;color:var(--sub);font-size:13px}
+
+/* UTILS */
+.section-hd{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin:14px 0 8px}
+.section-hd:first-child{margin-top:2px}
+@keyframes pop{0%{transform:scale(.5);opacity:0}65%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- PROFILE PICKER -->
+  <div id="picker">
+    <div class="pk-title">75 Hard</div>
+    <div class="pk-sub">Who's checking in?</div>
+    <div class="pk-cards">
+      <div class="pk-card" onclick="selectProfile('aidan')">
+        <div class="pk-avatar pk-av-a">A</div>
+        <div>
+          <div class="pk-name">Aidan</div>
+          <div class="pk-desc">200g protein · Run / Swim / Bike / Lift</div>
+        </div>
+        <div class="pk-arrow">›</div>
+      </div>
+      <div class="pk-card" onclick="selectProfile('taylor')">
+        <div class="pk-avatar pk-av-t">T</div>
+        <div>
+          <div class="pk-name">Taylor</div>
+          <div class="pk-desc">150g protein · Walk / Bike / Lift</div>
+        </div>
+        <div class="pk-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <header id="hdr">
+    <div id="hdr-left">
+      <div id="hdr-brand">75 HARD</div>
+      <div id="hdr-day">Loading…</div>
+    </div>
+    <div id="hdr-right">
+      <div id="phase-badge" class="phase-badge">—</div>
+      <div id="streak-hdr"></div>
+      <div id="switch-btn" onclick="showPicker()">⇄ Switch</div>
+    </div>
+  </header>
+
+  <div id="content">
+
+    <!-- TODAY -->
+    <div id="tab-today" class="tab-panel active">
+      <div id="banner"><div class="b-emoji">🔥</div><div class="b-msg">DAY COMPLETE!</div><div class="b-sub">All 10 rules locked in. Streak alive.</div></div>
+      <div id="pre-wrap" style="display:none">
+        <div class="card" id="pre-card">
+          <div id="pre-days">—</div><div id="pre-lbl">days until the challenge</div>
+          <div id="pre-start">Starts May 1, 2026</div>
+        </div>
+      </div>
+      <div id="ring-wrap">
+        <svg id="ring-svg" viewBox="0 0 148 148" width="148" height="148">
+          <circle id="ring-bg" cx="74" cy="74" r="60"/>
+          <circle id="ring-fg" cx="74" cy="74" r="60"/>
+          <text id="ring-num" x="74" y="68">0/10</text>
+          <text id="ring-sub" x="74" y="88">rules done</text>
+        </svg>
+      </div>
+      <div id="rules-list"></div>
+    </div>
+
+    <!-- WORKOUT -->
+    <div id="tab-workout" class="tab-panel">
+      <div id="wo-content"></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="tab-progress" class="tab-panel">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" id="s-days" style="color:var(--teal)">—</div><div class="stat-lbl">Days Done</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-streak" style="color:var(--red)">—</div><div class="stat-lbl">🔥 Streak</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Overall Progress</div>
+        <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--sub);text-align:right;margin-top:2px" id="pct-txt">0 / 75 days</div>
+      </div>
+      <div class="card">
+        <div class="card-title">75-Day Calendar</div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div style="display:flex;gap:14px;margin-top:10px">
+          <span style="font-size:10px;color:var(--sub);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--teal)"></span>Done</span>
+          <span style="font-size:10px;color:var(--sub);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(245,200,66,.55)"></span>Partial</span>
+          <span style="font-size:10px;color:var(--sub);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;outline:2px solid var(--red)"></span>Today</span>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">Rule Completion</div><div id="rule-stats"></div></div>
+    </div>
+
+    <!-- MEALS / PROTEIN -->
+    <div id="tab-meals" class="tab-panel">
+      <div id="pt-wrap">
+        <svg id="pt-svg" viewBox="0 0 148 148" width="148" height="148">
+          <circle id="pt-bg" cx="74" cy="74" r="60"/>
+          <circle id="pt-fg" cx="74" cy="74" r="60"/>
+          <text id="pt-num" x="74" y="60">0g</text>
+          <text id="pt-unit" x="74" y="79">of <tspan id="pt-target">200g</tspan></text>
+          <text id="pt-lbl" x="74" y="96">protein</text>
+        </svg>
+      </div>
+      <p class="section-hd">Quick Add</p>
+      <div class="q-grid" id="quick-grid"></div>
+      <p class="section-hd">Custom</p>
+      <div class="cust-row">
+        <input class="cust-food" id="cust-food" type="text" placeholder="Food name…">
+        <input class="cust-g" id="cust-g" type="number" placeholder="g" min="1" max="500">
+        <button class="cust-add" onclick="addCustomP()">Add</button>
+      </div>
+      <p class="section-hd">Today's Log</p>
+      <div id="p-log"></div>
+    </div>
+
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" onclick="goTab('today',this)"><span class="nav-icon">📅</span>Today</button>
+    <button class="nav-btn" onclick="goTab('workout',this)"><span class="nav-icon">💪</span>Workout</button>
+    <button class="nav-btn" onclick="goTab('progress',this)"><span class="nav-icon">📊</span>Progress</button>
+    <button class="nav-btn" onclick="goTab('meals',this)"><span class="nav-icon">🥗</span>Meals</button>
+  </nav>
+</div>
+
+<script>
+const PROFILES = {
+  aidan: {
+    name: 'Aidan',
+    workouts: [{"day": 1, "date": "May 1", "dow": "Friday", "hard": "Triathlon Baseline — All Three Events\nSWIM — 500-Yard Time Trial: warm up 200m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 10 min easy jog warm-up, run 1 mile all-out, record time\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Baseline Test", "phase": 1}, {"day": 2, "date": "May 2", "dow": "Saturday", "hard": "Rock Climbing — 45+ min\nWarm up on easy routes\nFocus on technique over grade\nWork footwork and body position\nCool down on moderate routes", "easy": "Dog walk 20-30 min or fetch", "focus": "Rock Climb", "phase": 1}, {"day": 3, "date": "May 3", "dow": "Sunday", "hard": "Easy Run — 45 min\nVery relaxed pace, HR Zone 1-2\nIf needed, walk sections\nEnjoy it — this is recovery\nNo watch, no pressure", "easy": "Dog walk 20-30 min or fetch", "focus": "Easy Run", "phase": 1}, {"day": 4, "date": "May 4", "dow": "Monday", "hard": "Lift — Upper Body\nBench press 3x10\nBent-over row 3x10\nShoulder press 3x10\nBicep curl 3x12\nTricep pushdown 3x12", "easy": "Dog walk 20-30 min or fetch", "focus": "Upper Body Strength", "phase": 1}, {"day": 5, "date": "May 5", "dow": "Tuesday", "hard": "Swim — 1,000m easy\n4x200m at comfortable pace\n60 sec rest between sets\nFocus on breathing and form\nCount strokes per length — aim for consistency", "easy": "Dog walk 20-30 min or fetch", "focus": "Swim", "phase": 1}, {"day": 6, "date": "May 6", "dow": "Wednesday", "hard": "Bike — 45 min steady\nKeep HR in Zone 2 — fully conversational\nOutdoor ride or stationary\nFlat terrain, easy gear\nTrack distance", "easy": "Dog walk 20-30 min or fetch", "focus": "Bike", "phase": 1}, {"day": 7, "date": "May 7", "dow": "Thursday", "hard": "Lift — Lower Body\nGoblet squat 3x12\nRomanian deadlift 3x10\nLeg press 3x12\nWalking lunges 3x10/leg\nCalf raises 3x15", "easy": "Dog walk 20-30 min or fetch", "focus": "Lower Body Strength", "phase": 1}, {"day": 8, "date": "May 8", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n1 min jog / 2 min walk x repeat (x10)\nKeep fully conversational — if you cannot talk, slow down\nTrack total distance", "easy": "Dog walk 20-30 min or fetch", "focus": "Run/Walk", "phase": 1}, {"day": 9, "date": "May 9", "dow": "Saturday", "hard": "Rock Climbing — 45+ min\nWarm up on easy routes\nFocus on technique over grade\nWork footwork and body position\nCool down on moderate routes", "easy": "Dog walk 20-30 min or fetch", "focus": "Rock Climb", "phase": 1}, {"day": 10, "date": "May 10", "dow": "Sunday", "hard": "Easy Run — 45 min\nVery relaxed pace, HR Zone 1-2\nIf needed, walk sections\nEnjoy it — this is recovery\nNo watch, no pressure", "easy": "Dog walk 20-30 min or fetch", "focus": "Easy Run", "phase": 1}, {"day": 11, "date": "May 11", "dow": "Monday", "hard": "Lift — Upper Body\nBench press 3x10\nBent-over row 3x10\nShoulder press 3x10\nBicep curl 3x12\nTricep pushdown 3x12", "easy": "Dog walk 20-30 min or fetch", "focus": "Upper Body Strength", "phase": 1}, {"day": 12, "date": "May 12", "dow": "Tuesday", "hard": "Swim — 1,000m easy\n4x200m at comfortable pace\n60 sec rest between sets\nFocus on breathing and form\nCount strokes per length — aim for consistency", "easy": "Dog walk 20-30 min or fetch", "focus": "Swim", "phase": 1}, {"day": 13, "date": "May 13", "dow": "Wednesday", "hard": "Bike — 45 min steady\nKeep HR in Zone 2 — fully conversational\nOutdoor ride or stationary\nFlat terrain, easy gear\nTrack distance", "easy": "Dog walk 20-30 min or fetch", "focus": "Bike", "phase": 1}, {"day": 14, "date": "May 14", "dow": "Thursday", "hard": "Lift — Lower Body\nGoblet squat 3x12\nRomanian deadlift 3x10\nLeg press 3x12\nWalking lunges 3x10/leg\nCalf raises 3x15", "easy": "Dog walk 20-30 min or fetch", "focus": "Lower Body Strength", "phase": 1}, {"day": 15, "date": "May 15", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n1 min jog / 2 min walk x repeat (x10)\nKeep fully conversational — if you cannot talk, slow down\nTrack total distance", "easy": "Dog walk 20-30 min or fetch", "focus": "Run/Walk", "phase": 1}, {"day": 16, "date": "May 16", "dow": "Saturday", "hard": "Rock Climbing — 45+ min\nWarm up on easy routes\nFocus on technique over grade\nWork footwork and body position\nCool down on moderate routes", "easy": "Dog walk 20-30 min or fetch", "focus": "Rock Climb", "phase": 1}, {"day": 17, "date": "May 17", "dow": "Sunday", "hard": "Easy Run — 45 min\nVery relaxed pace, HR Zone 1-2\nIf needed, walk sections\nEnjoy it — this is recovery\nNo watch, no pressure", "easy": "Dog walk 20-30 min or fetch", "focus": "Easy Run", "phase": 1}, {"day": 18, "date": "May 18", "dow": "Monday", "hard": "Lift — Upper Body\nBench press 3x10\nBent-over row 3x10\nShoulder press 3x10\nBicep curl 3x12\nTricep pushdown 3x12", "easy": "Dog walk 20-30 min or fetch", "focus": "Upper Body Strength", "phase": 1}, {"day": 19, "date": "May 19", "dow": "Tuesday", "hard": "Swim — 1,000m easy\n4x200m at comfortable pace\n60 sec rest between sets\nFocus on breathing and form\nCount strokes per length — aim for consistency", "easy": "Dog walk 20-30 min or fetch", "focus": "Swim", "phase": 1}, {"day": 20, "date": "May 20", "dow": "Wednesday", "hard": "Bike — 45 min steady\nKeep HR in Zone 2 — fully conversational\nOutdoor ride or stationary\nFlat terrain, easy gear\nTrack distance", "easy": "Dog walk 20-30 min or fetch", "focus": "Bike", "phase": 1}, {"day": 21, "date": "May 21", "dow": "Thursday", "hard": "Lift — Lower Body\nGoblet squat 3x12\nRomanian deadlift 3x10\nLeg press 3x12\nWalking lunges 3x10/leg\nCalf raises 3x15", "easy": "Dog walk 20-30 min or fetch", "focus": "Lower Body Strength", "phase": 1}, {"day": 22, "date": "May 22", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n1 min jog / 2 min walk x repeat (x10)\nKeep fully conversational — if you cannot talk, slow down\nTrack total distance", "easy": "Dog walk 20-30 min or fetch", "focus": "Run/Walk", "phase": 1}, {"day": 23, "date": "May 23", "dow": "Saturday", "hard": "Rock Climbing — 45+ min\nWarm up on easy routes\nFocus on technique over grade\nWork footwork and body position\nCool down on moderate routes", "easy": "Dog walk 20-30 min or fetch", "focus": "Rock Climb", "phase": 1}, {"day": 24, "date": "May 24", "dow": "Sunday", "hard": "Easy Run — 45 min\nVery relaxed pace, HR Zone 1-2\nIf needed, walk sections\nEnjoy it — this is recovery\nNo watch, no pressure", "easy": "Dog walk 20-30 min or fetch", "focus": "Easy Run", "phase": 1}, {"day": 25, "date": "May 25", "dow": "Monday", "hard": "Phase 1 Retest — All Three Events\nSWIM — 500-Yard Time Trial: warm up 200m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 10 min easy jog warm-up, run 1 mile all-out, record time\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Phase 1 Test", "phase": 1}, {"day": 26, "date": "May 26", "dow": "Tuesday", "hard": "Swim — 1,400m with intensity\n4x100m warm-up\n6x100m at moderate effort (30 sec rest)\n200m cool-down\nFocus on turnover rate", "easy": "Dog walk 30 min or fetch", "focus": "Swim", "phase": 2}, {"day": 27, "date": "May 27", "dow": "Wednesday", "hard": "Bike — 45 min with intervals\n10 min warm-up\n5x3 min hard / 2 min easy\n10 min cool-down\nOutdoor or stationary", "easy": "Dog walk 30 min or fetch", "focus": "Bike", "phase": 2}, {"day": 28, "date": "May 28", "dow": "Thursday", "hard": "Lift — Lower Body (add weight)\nBack squat 4x8\nDeadlift 3x6\nBulgarian split squat 3x10/leg\nHip thrust 3x12\nCalf raises 3x20", "easy": "Dog walk 30 min or fetch", "focus": "Lower Body Strength", "phase": 2}, {"day": 29, "date": "May 29", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n2 min jog / 1 min walk x repeat (x9)\nPush the jog pace slightly\nTrack total distance — beat last week", "easy": "Dog walk 30 min or fetch", "focus": "Run/Walk", "phase": 2}, {"day": 30, "date": "May 30", "dow": "Saturday", "hard": "Rock Climbing — push harder\nWarm up thoroughly\nWork a project route — push your limit\nEnd with volume on easier routes\nLog your hardest send", "easy": "Dog walk 30 min or fetch", "focus": "Rock Climb", "phase": 2}, {"day": 31, "date": "May 31", "dow": "Sunday", "hard": "Easy Run — 45 min\nSteady comfortable pace\nNo walking needed by now\nKeep HR conversational\nAppreciate how far you have come", "easy": "Dog walk 30 min or fetch", "focus": "Easy Run", "phase": 2}, {"day": 32, "date": "Jun 1", "dow": "Monday", "hard": "Lift — Upper Body (add weight)\nBench press 4x8\nBent-over row 4x8\nShoulder press 3x10\nPull-ups or lat pulldown 3x10\nFace pulls 3x15", "easy": "Dog walk 30 min or fetch", "focus": "Upper Body Strength", "phase": 2}, {"day": 33, "date": "Jun 2", "dow": "Tuesday", "hard": "Swim — 1,400m with intensity\n4x100m warm-up\n6x100m at moderate effort (30 sec rest)\n200m cool-down\nFocus on turnover rate", "easy": "Dog walk 30 min or fetch", "focus": "Swim", "phase": 2}, {"day": 34, "date": "Jun 3", "dow": "Wednesday", "hard": "Bike — 45 min with intervals\n10 min warm-up\n5x3 min hard / 2 min easy\n10 min cool-down\nOutdoor or stationary", "easy": "Dog walk 30 min or fetch", "focus": "Bike", "phase": 2}, {"day": 35, "date": "Jun 4", "dow": "Thursday", "hard": "Lift — Lower Body (add weight)\nBack squat 4x8\nDeadlift 3x6\nBulgarian split squat 3x10/leg\nHip thrust 3x12\nCalf raises 3x20", "easy": "Dog walk 30 min or fetch", "focus": "Lower Body Strength", "phase": 2}, {"day": 36, "date": "Jun 5", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n2 min jog / 1 min walk x repeat (x9)\nPush the jog pace slightly\nTrack total distance — beat last week", "easy": "Dog walk 30 min or fetch", "focus": "Run/Walk", "phase": 2}, {"day": 37, "date": "Jun 6", "dow": "Saturday", "hard": "Rock Climbing — push harder\nWarm up thoroughly\nWork a project route — push your limit\nEnd with volume on easier routes\nLog your hardest send", "easy": "Dog walk 30 min or fetch", "focus": "Rock Climb", "phase": 2}, {"day": 38, "date": "Jun 7", "dow": "Sunday", "hard": "Easy Run — 45 min\nSteady comfortable pace\nNo walking needed by now\nKeep HR conversational\nAppreciate how far you have come", "easy": "Dog walk 30 min or fetch", "focus": "Easy Run", "phase": 2}, {"day": 39, "date": "Jun 8", "dow": "Monday", "hard": "Lift — Upper Body (add weight)\nBench press 4x8\nBent-over row 4x8\nShoulder press 3x10\nPull-ups or lat pulldown 3x10\nFace pulls 3x15", "easy": "Dog walk 30 min or fetch", "focus": "Upper Body Strength", "phase": 2}, {"day": 40, "date": "Jun 9", "dow": "Tuesday", "hard": "Swim — 1,400m with intensity\n4x100m warm-up\n6x100m at moderate effort (30 sec rest)\n200m cool-down\nFocus on turnover rate", "easy": "Dog walk 30 min or fetch", "focus": "Swim", "phase": 2}, {"day": 41, "date": "Jun 10", "dow": "Wednesday", "hard": "Bike — 45 min with intervals\n10 min warm-up\n5x3 min hard / 2 min easy\n10 min cool-down\nOutdoor or stationary", "easy": "Dog walk 30 min or fetch", "focus": "Bike", "phase": 2}, {"day": 42, "date": "Jun 11", "dow": "Thursday", "hard": "Lift — Lower Body (add weight)\nBack squat 4x8\nDeadlift 3x6\nBulgarian split squat 3x10/leg\nHip thrust 3x12\nCalf raises 3x20", "easy": "Dog walk 30 min or fetch", "focus": "Lower Body Strength", "phase": 2}, {"day": 43, "date": "Jun 12", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n2 min jog / 1 min walk x repeat (x9)\nPush the jog pace slightly\nTrack total distance — beat last week", "easy": "Dog walk 30 min or fetch", "focus": "Run/Walk", "phase": 2}, {"day": 44, "date": "Jun 13", "dow": "Saturday", "hard": "Rock Climbing — push harder\nWarm up thoroughly\nWork a project route — push your limit\nEnd with volume on easier routes\nLog your hardest send", "easy": "Dog walk 30 min or fetch", "focus": "Rock Climb", "phase": 2}, {"day": 45, "date": "Jun 14", "dow": "Sunday", "hard": "Easy Run — 45 min\nSteady comfortable pace\nNo walking needed by now\nKeep HR conversational\nAppreciate how far you have come", "easy": "Dog walk 30 min or fetch", "focus": "Easy Run", "phase": 2}, {"day": 46, "date": "Jun 15", "dow": "Monday", "hard": "Lift — Upper Body (add weight)\nBench press 4x8\nBent-over row 4x8\nShoulder press 3x10\nPull-ups or lat pulldown 3x10\nFace pulls 3x15", "easy": "Dog walk 30 min or fetch", "focus": "Upper Body Strength", "phase": 2}, {"day": 47, "date": "Jun 16", "dow": "Tuesday", "hard": "Swim — 1,400m with intensity\n4x100m warm-up\n6x100m at moderate effort (30 sec rest)\n200m cool-down\nFocus on turnover rate", "easy": "Dog walk 30 min or fetch", "focus": "Swim", "phase": 2}, {"day": 48, "date": "Jun 17", "dow": "Wednesday", "hard": "Bike — 45 min with intervals\n10 min warm-up\n5x3 min hard / 2 min easy\n10 min cool-down\nOutdoor or stationary", "easy": "Dog walk 30 min or fetch", "focus": "Bike", "phase": 2}, {"day": 49, "date": "Jun 18", "dow": "Thursday", "hard": "Lift — Lower Body (add weight)\nBack squat 4x8\nDeadlift 3x6\nBulgarian split squat 3x10/leg\nHip thrust 3x12\nCalf raises 3x20", "easy": "Dog walk 30 min or fetch", "focus": "Lower Body Strength", "phase": 2}, {"day": 50, "date": "Jun 19", "dow": "Friday", "hard": "Run/Walk Intervals — 45 min\n5 min easy walk warm-up\n2 min jog / 1 min walk x repeat (x9)\nPush the jog pace slightly\nTrack total distance — beat last week", "easy": "Dog walk 30 min or fetch", "focus": "Run/Walk", "phase": 2}, {"day": 51, "date": "Jun 20", "dow": "Saturday", "hard": "Phase 2 Retest — All Three Events\nSWIM — 500-Yard Time Trial: warm up 200m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 10 min easy jog warm-up, run 1 mile all-out, record time\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Phase 2 Test", "phase": 3}, {"day": 52, "date": "Jun 21", "dow": "Sunday", "hard": "Easy Run — 45 min\nRelaxed, grateful pace\nReflect on how far you have come\nYou're a different person than Day 1\nSoak it in", "easy": "Dog walk 30+ min or fetch", "focus": "Easy Run", "phase": 3}, {"day": 53, "date": "Jun 22", "dow": "Monday", "hard": "Lift — Upper Body (heavy)\nBench press 4x6\nWeighted pull-ups or rows 4x6\nOH press 4x8\nDips 3x10\nPush-ups to failure", "easy": "Dog walk 30+ min or fetch", "focus": "Upper Body Strength", "phase": 3}, {"day": 54, "date": "Jun 23", "dow": "Tuesday", "hard": "Swim — 1,800m mixed\n400m warm-up\n8x100m hard (20 sec rest)\n200m cool-down\nPush your pace on hard sets", "easy": "Dog walk 30+ min or fetch", "focus": "Swim", "phase": 3}, {"day": 55, "date": "Jun 24", "dow": "Wednesday", "hard": "Bike — 45 min tempo\n10 min easy\n25 min hard sustained effort\n10 min cool-down\nTrack average speed — beat last week", "easy": "Dog walk 30+ min or fetch", "focus": "Bike", "phase": 3}, {"day": 56, "date": "Jun 25", "dow": "Thursday", "hard": "Lift — Lower Body (heavy)\nBack squat 5x5\nDeadlift 4x5\nRear-foot elevated split squat 3x8\nKB swings 3x15\nCalf raises 3x20", "easy": "Dog walk 30+ min or fetch", "focus": "Lower Body Strength", "phase": 3}, {"day": 57, "date": "Jun 26", "dow": "Friday", "hard": "Steady Run — 45 min\n5 min walk warm-up\n35 min continuous jog at easy pace\n5 min walk cool-down\nYou're running now — trust the process", "easy": "Dog walk 30+ min or fetch", "focus": "Run/Walk", "phase": 3}, {"day": 58, "date": "Jun 27", "dow": "Saturday", "hard": "Rock Climbing — best effort\nWarm up, then push your limit\nClimb your hardest route of the challenge\nFinish with 2 laps on moderate route\nYou know what you are doing now", "easy": "Dog walk 30+ min or fetch", "focus": "Rock Climb", "phase": 3}, {"day": 59, "date": "Jun 28", "dow": "Sunday", "hard": "Easy Run — 45 min\nRelaxed, grateful pace\nReflect on how far you have come\nYou're a different person than Day 1\nSoak it in", "easy": "Dog walk 30+ min or fetch", "focus": "Easy Run", "phase": 3}, {"day": 60, "date": "Jun 29", "dow": "Monday", "hard": "Lift — Upper Body (heavy)\nBench press 4x6\nWeighted pull-ups or rows 4x6\nOH press 4x8\nDips 3x10\nPush-ups to failure", "easy": "Dog walk 30+ min or fetch", "focus": "Upper Body Strength", "phase": 3}, {"day": 61, "date": "Jun 30", "dow": "Tuesday", "hard": "Swim — 1,800m mixed\n400m warm-up\n8x100m hard (20 sec rest)\n200m cool-down\nPush your pace on hard sets", "easy": "Dog walk 30+ min or fetch", "focus": "Swim", "phase": 3}, {"day": 62, "date": "Jul 1", "dow": "Wednesday", "hard": "Bike — 45 min tempo\n10 min easy\n25 min hard sustained effort\n10 min cool-down\nTrack average speed — beat last week", "easy": "Dog walk 30+ min or fetch", "focus": "Bike", "phase": 3}, {"day": 63, "date": "Jul 2", "dow": "Thursday", "hard": "Lift — Lower Body (heavy)\nBack squat 5x5\nDeadlift 4x5\nRear-foot elevated split squat 3x8\nKB swings 3x15\nCalf raises 3x20", "easy": "Dog walk 30+ min or fetch", "focus": "Lower Body Strength", "phase": 3}, {"day": 64, "date": "Jul 3", "dow": "Friday", "hard": "Steady Run — 45 min\n5 min walk warm-up\n35 min continuous jog at easy pace\n5 min walk cool-down\nYou're running now — trust the process", "easy": "Dog walk 30+ min or fetch", "focus": "Run/Walk", "phase": 3}, {"day": 65, "date": "Jul 4", "dow": "Saturday", "hard": "Rock Climbing — best effort\nWarm up, then push your limit\nClimb your hardest route of the challenge\nFinish with 2 laps on moderate route\nYou know what you are doing now", "easy": "Dog walk 30+ min or fetch", "focus": "Rock Climb", "phase": 3}, {"day": 66, "date": "Jul 5", "dow": "Sunday", "hard": "Easy Run — 45 min\nRelaxed, grateful pace\nReflect on how far you have come\nYou're a different person than Day 1\nSoak it in", "easy": "Dog walk 30+ min or fetch", "focus": "Easy Run", "phase": 3}, {"day": 67, "date": "Jul 6", "dow": "Monday", "hard": "Lift — Upper Body (heavy)\nBench press 4x6\nWeighted pull-ups or rows 4x6\nOH press 4x8\nDips 3x10\nPush-ups to failure", "easy": "Dog walk 30+ min or fetch", "focus": "Upper Body Strength", "phase": 3}, {"day": 68, "date": "Jul 7", "dow": "Tuesday", "hard": "Swim — 1,800m mixed\n400m warm-up\n8x100m hard (20 sec rest)\n200m cool-down\nPush your pace on hard sets", "easy": "Dog walk 30+ min or fetch", "focus": "Swim", "phase": 3}, {"day": 69, "date": "Jul 8", "dow": "Wednesday", "hard": "Bike — 45 min tempo\n10 min easy\n25 min hard sustained effort\n10 min cool-down\nTrack average speed — beat last week", "easy": "Dog walk 30+ min or fetch", "focus": "Bike", "phase": 3}, {"day": 70, "date": "Jul 9", "dow": "Thursday", "hard": "Lift — Lower Body (heavy)\nBack squat 5x5\nDeadlift 4x5\nRear-foot elevated split squat 3x8\nKB swings 3x15\nCalf raises 3x20", "easy": "Dog walk 30+ min or fetch", "focus": "Lower Body Strength", "phase": 3}, {"day": 71, "date": "Jul 10", "dow": "Friday", "hard": "Steady Run — 45 min\n5 min walk warm-up\n35 min continuous jog at easy pace\n5 min walk cool-down\nYou're running now — trust the process", "easy": "Dog walk 30+ min or fetch", "focus": "Run/Walk", "phase": 3}, {"day": 72, "date": "Jul 11", "dow": "Saturday", "hard": "Rock Climbing — best effort\nWarm up, then push your limit\nClimb your hardest route of the challenge\nFinish with 2 laps on moderate route\nYou know what you are doing now", "easy": "Dog walk 30+ min or fetch", "focus": "Rock Climb", "phase": 3}, {"day": 73, "date": "Jul 12", "dow": "Sunday", "hard": "Easy Run — 45 min\nRelaxed, grateful pace\nReflect on how far you have come\nYou're a different person than Day 1\nSoak it in", "easy": "Dog walk 30+ min or fetch", "focus": "Easy Run", "phase": 3}, {"day": 74, "date": "Jul 13", "dow": "Monday", "hard": "Lift — Upper Body (heavy)\nBench press 4x6\nWeighted pull-ups or rows 4x6\nOH press 4x8\nDips 3x10\nPush-ups to failure", "easy": "Dog walk 30+ min or fetch", "focus": "Upper Body Strength", "phase": 3}, {"day": 75, "date": "Jul 14", "dow": "Tuesday", "hard": "FINAL TEST — All Three Events\nSWIM — 500-Yard Time Trial: warm up 200m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 10 min easy jog warm-up, run 1 mile all-out, record time\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Final Test", "phase": 3}],
+    pt: 200,
+    quick: [
+      {label:'Eggs + bacon',g:35},{label:'Eggs + bagel',g:25},
+      {label:'Protein shake',g:30},{label:'Chicken breast (6oz)',g:45},
+      {label:'Tuna (can)',g:25},{label:'Greek yogurt (plain)',g:15},
+      {label:'Ground turkey (6oz)',g:38},{label:'Salmon fillet (6oz)',g:40},
+      {label:'Cottage cheese (1c)',g:25},{label:'Hard boiled eggs x2',g:12},
+    ],
+    accentColor: '#e94560',
+  },
+  taylor: {
+    name: 'Taylor',
+    workouts: [{"day": 1, "date": "May 1", "dow": "Friday", "hard": "Triathlon Baseline — All Three Events\nSWIM — 500-Yard Time Trial: warm up 100m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 5 min easy walk warm-up, run 1 mile as fast as comfortably possible, record time\nMax Push-Ups: rest 5 min, do as many as possible (modified OK), record count\nPlank Hold: rest 3 min, hold as long as you can, record seconds\nWall Sit: rest 3 min, hold as long as you can, record seconds\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run + strength the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Baseline Test", "phase": 1}, {"day": 2, "date": "May 2", "dow": "Saturday", "hard": "Outdoor Walk — 45+ Min\nGet outside on a real route — trail, park, neighborhood\nWalk at a brisk pace, arms swinging\nVary terrain if possible\nFocus on enjoying the movement", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Outdoor Walk", "phase": 1}, {"day": 3, "date": "May 3", "dow": "Sunday", "hard": "Recovery — Yoga and Stretch\n20 min gentle yoga or guided stretch (YouTube OK)\n10 min foam roll: quads, IT band, calves, back\n15 min easy outdoor walk if possible\nFocus on deep breathing", "easy": "Light yoga or mobility indoors 30 min", "focus": "Recovery", "phase": 1}, {"day": 4, "date": "May 4", "dow": "Monday", "hard": "Upper Body — Foundation\nKnee or incline push-ups 3x12\nBand or light DB row 3x12\nDB shoulder press (5-8 lb) 3x12\nBicep curl (light) 3x15\nTricep dip off chair 3x10\nRest 60-90 sec between sets", "easy": "Outdoor walk 30-45 min", "focus": "Foundation", "phase": 1}, {"day": 5, "date": "May 5", "dow": "Tuesday", "hard": "Easy Run — 3 Miles\n5 min brisk walk warm-up\nRun 3 miles at easy zone 2 — hold a full sentence\nFocus on relaxed shoulders and steady breathing\n5 min walk cool-down\nNote your total time — you'll beat it", "easy": "Outdoor walk 30-45 min", "focus": "Easy 3 Miles", "phase": 1}, {"day": 6, "date": "May 6", "dow": "Wednesday", "hard": "Easy Bike — 35 Min\nResistance: light (zone 2 effort)\nYou should talk comfortably throughout\nFocus on smooth circular pedaling\nTrack distance — beat it next session", "easy": "Outdoor walk 30-45 min", "focus": "Easy 35", "phase": 1}, {"day": 7, "date": "May 7", "dow": "Thursday", "hard": "Lower Body — Foundation\nBodyweight squat 3x15\nReverse lunge 3x12 each leg\nGlute bridge 3x15\nStep-up 3x10 each leg\nCalf raise 3x20\nRest 60 sec between sets", "easy": "Outdoor walk 30-45 min", "focus": "Foundation", "phase": 1}, {"day": 8, "date": "May 8", "dow": "Friday", "hard": "Easy Run — 3 Miles\n5 min walk warm-up\nRun 3 miles, try a new route or direction\nCheck in with form every 5 min: tall posture, relaxed arms\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Easy 3 Miles", "phase": 1}, {"day": 9, "date": "May 9", "dow": "Saturday", "hard": "Brisk Outdoor Walk — 45+ Min\nPush your pace on flat sections\nExplore somewhere new if possible\nChest up, shoulders back", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Brisk Walk", "phase": 1}, {"day": 10, "date": "May 10", "dow": "Sunday", "hard": "Recovery — Easy Walk\n45 min easy outdoor walk\nNo pace goal — this is movement meditation\nFocus on posture and breathing", "easy": "Light yoga or mobility indoors 30 min", "focus": "Easy Walk", "phase": 1}, {"day": 11, "date": "May 11", "dow": "Monday", "hard": "Upper Body — Push and Pull\nIncline push-ups 3x12 (standard if ready)\nDB row 3x12 each arm\nLateral raise (light) 3x15\nHammer curl 3x12\nOverhead tricep extension 3x12\nRest 60-90 sec", "easy": "Outdoor walk 30-45 min", "focus": "Push and Pull", "phase": 1}, {"day": 12, "date": "May 12", "dow": "Tuesday", "hard": "Easy Run — Negative Split\n5 min walk warm-up\nRun 3 miles: first 1.5 easy, second 1.5 slightly faster\nGoal: second half faster than first\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Negative Split", "phase": 1}, {"day": 13, "date": "May 13", "dow": "Wednesday", "hard": "Easy Bike — 40 Min\n5 min very easy warm-up spin\n30 min zone 2 — comfortable, never gasping\n5 min easy cool-down\nNote total distance covered", "easy": "Outdoor walk 30-45 min", "focus": "Easy 40", "phase": 1}, {"day": 14, "date": "May 14", "dow": "Thursday", "hard": "Lower Body — Glute and Ham\nBodyweight squat 3x15\nSingle-leg glute bridge 3x12 each\nCurtsy lunge 3x10 each\nDonkey kick 3x15 each\nCalf raise 3x20\nDead bug 3x10 each side", "easy": "Outdoor walk 30-45 min", "focus": "Glute and Ham", "phase": 1}, {"day": 15, "date": "May 15", "dow": "Friday", "hard": "Easy Run — Cadence Focus\n5 min walk warm-up\nRun 3 miles at zone 2, focus on cadence: aim 170-180 steps/min\nCount steps for 15 sec, multiply by 4\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Cadence", "phase": 1}, {"day": 16, "date": "May 16", "dow": "Saturday", "hard": "Walk and Jog Mix — 45 Min\nWalk 5 min, easy jog 2 min x6 rounds\nKeep it easy — this is bonus cardio\nFocus on how your body feels", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Walk/Jog", "phase": 1}, {"day": 17, "date": "May 17", "dow": "Sunday", "hard": "Recovery — Full Body Stretch\n10 min easy walk warm-up\n35 min full-body stretch: hip flexors, hamstrings, chest, shoulders, calves\nHold each 30-60 sec", "easy": "Light yoga or mobility indoors 30 min", "focus": "Stretch", "phase": 1}, {"day": 18, "date": "May 18", "dow": "Monday", "hard": "Upper Body — Volume\nPush-up max (modified OK), rest, 2 more sets\nDB row 4x12 each arm\nDB shoulder press 3x12\nBicep curl 3x15\nTricep dip 3x12\nBand pull-apart 3x15", "easy": "Outdoor walk 30-45 min", "focus": "Volume", "phase": 1}, {"day": 19, "date": "May 19", "dow": "Tuesday", "hard": "Easy Run — 3 Miles\n5 min walk warm-up\nRun 3 miles steady — notice how much easier this feels than Day 1\n5 min walk cool-down\nStretch quads and calves after", "easy": "Outdoor walk 30-45 min", "focus": "Easy 3 Miles", "phase": 1}, {"day": 20, "date": "May 20", "dow": "Wednesday", "hard": "Easy Bike — 45 Min\n5 min easy spin warm-up\n35 min steady zone 2\n5 min cool-down\nTrack your distance — the progress adds up", "easy": "Outdoor walk 30-45 min", "focus": "Easy 45", "phase": 1}, {"day": 21, "date": "May 21", "dow": "Thursday", "hard": "Lower Body — Squat and Lunge\nWide-stance squat 3x15\nForward lunge 3x12 each\nGlute bridge hold 30 sec x3\nLateral step-out 3x15\nCalf raise 3x20\nWall sit 30 sec x3", "easy": "Outdoor walk 30-45 min", "focus": "Squat and Lunge", "phase": 1}, {"day": 22, "date": "May 22", "dow": "Friday", "hard": "Run — Pace Lock\n5 min walk warm-up\nRun 1 mile easy to settle in\nRun 2 miles at a locked-in zone 2 pace — find your rhythm\n5 min walk cool-down\nNote each mile split", "easy": "Outdoor walk 30-45 min", "focus": "Pace Lock", "phase": 1}, {"day": 23, "date": "May 23", "dow": "Saturday", "hard": "Nature Walk or Hike — 45+ Min\nTrail or park if possible\nPace does not matter — presence does\nLet this be your mental reset for the week", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Nature Walk", "phase": 1}, {"day": 24, "date": "May 24", "dow": "Sunday", "hard": "Recovery — Mobility Flow\n5 min easy walk\n40 min mobility: hip circles, shoulder rolls, thoracic rotation, ankle mobility\nGo slow, breathe into every movement", "easy": "Light yoga or mobility indoors 30 min", "focus": "Mobility", "phase": 1}, {"day": 25, "date": "May 25", "dow": "Monday", "hard": "Phase 1 Retest — All Three Events\nSWIM — 500-Yard Time Trial: warm up 100m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 5 min easy walk warm-up, run 1 mile as fast as comfortably possible, record time\nMax Push-Ups: rest 5 min, do as many as possible (modified OK), record count\nPlank Hold: rest 3 min, hold as long as you can, record seconds\nWall Sit: rest 3 min, hold as long as you can, record seconds\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run + strength the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Phase 1 Test", "phase": 1}, {"day": 26, "date": "May 26", "dow": "Tuesday", "hard": "Run — 3.5 Miles Easy\n5 min walk warm-up\nRun 3.5 miles at easy zone 2\nBuilding distance — stay patient and relaxed\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "3.5 Miles", "phase": 2}, {"day": 27, "date": "May 27", "dow": "Wednesday", "hard": "Bike with Effort — 45 Min\n10 min easy warm-up\n3 min moderate effort / 2 min easy x5 rounds\n10 min easy cool-down\nModerate = talking takes effort", "easy": "Outdoor walk 30-45 min", "focus": "Intervals", "phase": 2}, {"day": 28, "date": "May 28", "dow": "Thursday", "hard": "Lower Body — Dumbbell Build\nGoblet squat (15-20 lb) 3x12\nRomanian deadlift (15-20 lb) 3x12\nWalking lunge 3x12 each\nGlute bridge with DB on hips 3x15\nCalf raise 3x20\nRest 60-90 sec", "easy": "Outdoor walk 30-45 min", "focus": "DB Build", "phase": 2}, {"day": 29, "date": "May 29", "dow": "Friday", "hard": "Run — Tempo Mile\n5 min walk warm-up\nRun 1 mile easy warm-up\nRun 1 mile at tempo — uncomfortable but sustainable\nRun 1 mile easy cool-down\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Tempo Mile", "phase": 2}, {"day": 30, "date": "May 30", "dow": "Saturday", "hard": "Outdoor Walk/Jog — 45 Min\n5 min warm-up walk\n3 min easy jog / 2 min walk x7 rounds\n5 min cool-down walk\nPush the jog pace more than last time", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Walk/Jog", "phase": 2}, {"day": 31, "date": "May 31", "dow": "Sunday", "hard": "Recovery — Walk and Stretch\n30 min easy outdoor walk\n15 min targeted stretch for whatever is sore this week\nFoam roll if available", "easy": "Light yoga or mobility indoors 30 min", "focus": "Recovery", "phase": 2}, {"day": 32, "date": "Jun 1", "dow": "Monday", "hard": "Upper Body — Dumbbell Build\nDB floor press 3x10\nDB row 3x12 each arm\nDB shoulder press 3x12\nDB curl 3x12\nTricep kickback 3x12\nFace pull 3x15\nRest 60-90 sec", "easy": "Outdoor walk 30-45 min", "focus": "DB Build", "phase": 2}, {"day": 33, "date": "Jun 2", "dow": "Tuesday", "hard": "Run — 4 Miles Easy\n5 min walk warm-up\nRun 4 miles at easy zone 2 — your new long run\nTake a short walk break if needed, keep moving\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "4 Miles", "phase": 2}, {"day": 34, "date": "Jun 3", "dow": "Wednesday", "hard": "Steady Bike — 45 Min\n5 min easy\n35 min at zone 3 — working but not maxed\n5 min cool-down\nTrack distance and try to beat it", "easy": "Outdoor walk 30-45 min", "focus": "Steady Z3", "phase": 2}, {"day": 35, "date": "Jun 4", "dow": "Thursday", "hard": "Lower Body — Posterior Chain\nRomanian deadlift (heavier) 4x10\nSingle-leg deadlift (light DB) 3x10 each\nGlute bridge with heavy DB 3x15\nCurtsy lunge 3x12 each\nCalf raise 3x20", "easy": "Outdoor walk 30-45 min", "focus": "Posterior Chain", "phase": 2}, {"day": 36, "date": "Jun 5", "dow": "Friday", "hard": "Run — Pick-Ups\n5 min walk warm-up\nRun 2 miles easy\n4x30 sec surge / 2 min easy jog between\n0.5 miles easy cool-down\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Pick-Ups", "phase": 2}, {"day": 37, "date": "Jun 6", "dow": "Saturday", "hard": "Brisk Outdoor Walk — 45+ Min\nPush your pace the whole way\nMove with purpose — active recovery still counts\nExplore a new route", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Brisk Walk", "phase": 2}, {"day": 38, "date": "Jun 7", "dow": "Sunday", "hard": "Recovery — Yoga\n45 min yoga — search yoga for runners on YouTube\nFocus on hips, hamstrings, lower back", "easy": "Light yoga or mobility indoors 30 min", "focus": "Yoga", "phase": 2}, {"day": 39, "date": "Jun 8", "dow": "Monday", "hard": "Upper Body — Push Focus\nDB floor press 4x10\nPush-ups to failure\nDB lateral raise 3x15\nOverhead press 3x12\nFront raise 3x12\nTricep overhead extension 3x12", "easy": "Outdoor walk 30-45 min", "focus": "Push Focus", "phase": 2}, {"day": 40, "date": "Jun 9", "dow": "Tuesday", "hard": "Run — Tempo Finish\n5 min walk warm-up\nRun 2.5 miles at easy zone 2\nFinish with 1 mile at tempo pace\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Tempo Finish", "phase": 2}, {"day": 41, "date": "Jun 10", "dow": "Wednesday", "hard": "Bike — Hill Simulation\n5 min easy warm-up\n4x3 min heavy resistance (simulate hill) / 2 min easy\n10 min easy moderate\n5 min cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Hill Sim", "phase": 2}, {"day": 42, "date": "Jun 11", "dow": "Thursday", "hard": "Lower Body — Quad and Glute\nGoblet squat 4x12\nBulgarian split squat (bodyweight) 3x10 each\nWalking lunge 3x12 each\nDonkey kick 3x15 each\nCalf raise 3x20", "easy": "Outdoor walk 30-45 min", "focus": "Quad and Glute", "phase": 2}, {"day": 43, "date": "Jun 12", "dow": "Friday", "hard": "Run — 4 Miles Steady\n5 min walk warm-up\nRun 4 miles steady zone 2\nYou've gone further than before — show up for it\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "4 Miles Steady", "phase": 2}, {"day": 44, "date": "Jun 13", "dow": "Saturday", "hard": "Outdoor Easy Jog — 2-3 Miles\n5 min walk warm-up\n2-3 mile easy jog at zone 2\nFocus on form and enjoying the outdoors\n5 min walk cool-down", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Outdoor Jog", "phase": 2}, {"day": 45, "date": "Jun 14", "dow": "Sunday", "hard": "Recovery — Easy Walk\n45 min easy outdoor walk at comfortable pace\nLet your mind rest as much as your body", "easy": "Light yoga or mobility indoors 30 min", "focus": "Easy Walk", "phase": 2}, {"day": 46, "date": "Jun 15", "dow": "Monday", "hard": "Upper Body — Pull Focus\nDB row (heavier) 4x10 each arm\nDB curl superset hammer curl 3x12\nBand face pull 3x15\nDB rear delt fly 3x15\nDB shrug 3x15\nBicep 21s x3 sets", "easy": "Outdoor walk 30-45 min", "focus": "Pull Focus", "phase": 2}, {"day": 47, "date": "Jun 16", "dow": "Tuesday", "hard": "Run — Intervals\n5 min walk warm-up\nRun 1 mile easy\n6x1 min hard / 1 min easy jog\nRun 1 mile easy cool-down\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Intervals", "phase": 2}, {"day": 48, "date": "Jun 17", "dow": "Wednesday", "hard": "Bike — Tempo\n10 min easy warm-up\n20 min at 7/10 effort (zone 3-4)\n10 min easy cool-down\nFeel the difference from Phase 1", "easy": "Outdoor walk 30-45 min", "focus": "Tempo", "phase": 2}, {"day": 49, "date": "Jun 18", "dow": "Thursday", "hard": "Lower Body — Strength\nGoblet squat (heaviest yet) 4x8\nRomanian deadlift 4x10\nBulgarian split squat 3x10 each\nHip thrust (DB on hips) 3x15\nLight jump squat 3x10", "easy": "Outdoor walk 30-45 min", "focus": "Strength", "phase": 2}, {"day": 50, "date": "Jun 19", "dow": "Friday", "hard": "Run — 3 Miles Tempo\n5 min walk warm-up\nRun 3 miles at sustained tempo — 7/10 effort throughout\nChallenging but controlled\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "3 Mile Tempo", "phase": 2}, {"day": 51, "date": "Jun 20", "dow": "Saturday", "hard": "Phase 2 Retest — All Three Events\nSWIM — 500-Yard Time Trial: warm up 100m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 5 min easy walk warm-up, run 1 mile as fast as comfortably possible, record time\nMax Push-Ups: rest 5 min, do as many as possible (modified OK), record count\nPlank Hold: rest 3 min, hold as long as you can, record seconds\nWall Sit: rest 3 min, hold as long as you can, record seconds\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run + strength the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Phase 2 Test", "phase": 3}, {"day": 52, "date": "Jun 21", "dow": "Sunday", "hard": "Recovery — Proud Walk\n45 min easy outdoor walk\nYou are in the final phase of 75 Hard — this is earned rest\nFocus on gratitude and what you have built", "easy": "Light yoga or mobility indoors 30 min", "focus": "Proud Walk", "phase": 3}, {"day": 53, "date": "Jun 22", "dow": "Monday", "hard": "Upper Body — Peak Strength\nDB floor press 4x8 (heaviest yet)\nDB row 4x10 each arm\nDB shoulder press 4x10\nDB curl superset tricep extension 3x12\nLateral raise drop-set 3x(15+12+10)\nPush-up finisher to failure", "easy": "Outdoor walk 30-45 min", "focus": "Peak Strength", "phase": 3}, {"day": 54, "date": "Jun 23", "dow": "Tuesday", "hard": "Run — 4.5 Miles Easy\n5 min walk warm-up\nRun 4.5 miles at zone 2\nTrust your fitness — you've earned every mile\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "4.5 Miles", "phase": 3}, {"day": 55, "date": "Jun 24", "dow": "Wednesday", "hard": "Bike Intervals — 50 Min\n10 min easy warm-up\n5x4 min hard effort / 2 min easy\n10 min easy cool-down\nHard = 8/10 — breathing heavy", "easy": "Outdoor walk 30-45 min", "focus": "Hard Intervals", "phase": 3}, {"day": 56, "date": "Jun 25", "dow": "Thursday", "hard": "Lower Body — Peak Power\nGoblet squat (25 lb+) 4x10\nRomanian deadlift (25 lb+) 4x10\nBulgarian split squat 4x10 each\nHip thrust heavy DB 4x12\nCalf raise superset jump squat 3x(15+8)", "easy": "Outdoor walk 30-45 min", "focus": "Peak Power", "phase": 3}, {"day": 57, "date": "Jun 26", "dow": "Friday", "hard": "Run — Tempo 4 Miles\n5 min walk warm-up\nRun 1 mile easy\nRun 2 miles at tempo\nRun 1 mile easy\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Tempo 4", "phase": 3}, {"day": 58, "date": "Jun 27", "dow": "Saturday", "hard": "Outdoor Jog — 45+ Min\nPush your pace the whole time\n50+ days in — your body is different now\nRun where you can, walk fast where you must", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Outdoor Jog", "phase": 3}, {"day": 59, "date": "Jun 28", "dow": "Sunday", "hard": "Recovery — Full Stretch\n10 min easy walk\n35 min full-body stretch\nFoam roll everything that has worked hard these 50+ days", "easy": "Light yoga or mobility indoors 30 min", "focus": "Full Stretch", "phase": 3}, {"day": 60, "date": "Jun 29", "dow": "Monday", "hard": "Upper Body — Hypertrophy\nDB floor press 3x12\nDB row 3x15 each arm\nArnold press 3x12\nHammer curl superset kickback 3x12\nFace pull 4x15\nPush-up finisher to failure", "easy": "Outdoor walk 30-45 min", "focus": "Hypertrophy", "phase": 3}, {"day": 61, "date": "Jun 30", "dow": "Tuesday", "hard": "Run — 5 Miles Easy\n5 min walk warm-up\nRun 5 miles at easy zone 2 — your longest run of 75 Hard\nYou started at 3 miles. Look at you now.\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "5 Miles", "phase": 3}, {"day": 62, "date": "Jul 1", "dow": "Wednesday", "hard": "Bike — Tempo 45 Min\n10 min easy\n25 min sustained zone 3-4\n10 min easy cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Tempo", "phase": 3}, {"day": 63, "date": "Jul 2", "dow": "Thursday", "hard": "Lower Body — Hypertrophy\nGoblet squat 3x15\nRomanian deadlift 3x15\nWalking lunge 3x15 each\nGlute bridge circuit (standard + single-leg + elevated) 3x15 each\nCalf raise 3x25", "easy": "Outdoor walk 30-45 min", "focus": "Hypertrophy", "phase": 3}, {"day": 64, "date": "Jul 3", "dow": "Friday", "hard": "Run — Intervals\n5 min walk warm-up\nRun 1 mile easy\n8x1 min hard / 1 min easy jog\nRun 1 mile easy cool-down\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Intervals", "phase": 3}, {"day": 65, "date": "Jul 4", "dow": "Saturday", "hard": "Outdoor Run — 2-3 Miles\n5 min walk warm-up\n2-3 mile easy run outdoors\nBonus session — enjoy the air and the movement", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Outdoor Run", "phase": 3}, {"day": 66, "date": "Jul 5", "dow": "Sunday", "hard": "Recovery — Yoga\n45 min recovery yoga focused on peak-phase fatigue\nHip flexors, hamstrings, calves, shoulders", "easy": "Light yoga or mobility indoors 30 min", "focus": "Yoga", "phase": 3}, {"day": 67, "date": "Jul 6", "dow": "Monday", "hard": "Upper Body — Power\nExplosive push-ups 3x8\nDB row heavy 4x8 each arm\nDB shoulder press heavy 3x8\nDB curl 3x10\nTricep extension 3x10\nBand pull-apart 3x20", "easy": "Outdoor walk 30-45 min", "focus": "Power", "phase": 3}, {"day": 68, "date": "Jul 7", "dow": "Tuesday", "hard": "Run — 4 Mile Tempo\n5 min walk warm-up\nRun 4 miles at sustained tempo — 7.5/10 effort\nThis is race-pace fitness\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "4 Mile Tempo", "phase": 3}, {"day": 69, "date": "Jul 8", "dow": "Wednesday", "hard": "Bike — Race Effort\n10 min easy warm-up\n20 min at 8.5/10 effort — as hard as you can sustain\n10 min easy cool-down", "easy": "Outdoor walk 30-45 min", "focus": "Race Effort", "phase": 3}, {"day": 70, "date": "Jul 9", "dow": "Thursday", "hard": "Lower Body — Strength\nHeavy goblet squat 4x8\nHeavy RDL 4x8\nBulgarian split squat 3x12 each\nHip thrust 4x10\nJump squat finisher 3x12", "easy": "Outdoor walk 30-45 min", "focus": "Strength", "phase": 3}, {"day": 71, "date": "Jul 10", "dow": "Friday", "hard": "Run — 4.5 Neg Split\n5 min walk warm-up\nRun 4.5 miles — make the second half faster than the first\nYou know what you are doing now\n5 min walk cool-down", "easy": "Outdoor walk 30-45 min", "focus": "4.5 Neg Split", "phase": 3}, {"day": 72, "date": "Jul 11", "dow": "Saturday", "hard": "Trail Walk or Hike — 60 Min\nGet on a trail, park path, or nature area\nPush on flats, take your time on hills\nCelebration cardio — you have earned this", "easy": "Indoor stretch or foam roll 30-45 min", "focus": "Trail/Hike", "phase": 3}, {"day": 73, "date": "Jul 12", "dow": "Sunday", "hard": "Recovery — Easy Walk\n45 min easy outdoor walk\nThe finish line is in sight — let your body regenerate", "easy": "Light yoga or mobility indoors 30 min", "focus": "Easy Walk", "phase": 3}, {"day": 74, "date": "Jul 13", "dow": "Monday", "hard": "Upper Body — Peak Volume\nDB floor press 4x12\nDB row 4x12 each arm\nShoulder circuit (press + lateral + front) 3x10 each\nBicep 21s x3\nDips or tricep pushdown 4x12\nMax push-ups finisher", "easy": "Outdoor walk 30-45 min", "focus": "Peak Volume", "phase": 3}, {"day": 75, "date": "Jul 14", "dow": "Tuesday", "hard": "FINAL TEST — All Three Events\nSWIM — 500-Yard Time Trial: warm up 100m easy, rest 2 min, swim 500 yards all-out, record time\nBIKE — 10-Mile Time Trial: 10 min easy spin warm-up, ride 10 miles as fast as possible, record time\nRUN — 1-Mile Time Trial: 5 min easy walk warm-up, run 1 mile as fast as comfortably possible, record time\nMax Push-Ups: rest 5 min, do as many as possible (modified OK), record count\nPlank Hold: rest 3 min, hold as long as you can, record seconds\nWall Sit: rest 3 min, hold as long as you can, record seconds\nRecord weight and waist measurement\nTIP: spread over 2 days if needed — swim + bike one day, run + strength the next", "easy": "Rest or easy walk — let the tests be the workout", "focus": "Final Test", "phase": 3}],
+    pt: 150,
+    quick: [
+      {label:'Protein shake',g:30},{label:'Greek yogurt (plain)',g:15},
+      {label:'Chicken breast (4oz)',g:30},{label:'Eggs + egg whites',g:25},
+      {label:'Cottage cheese (1c)',g:25},{label:'Tuna (can)',g:25},
+      {label:'Salmon fillet (4oz)',g:27},{label:'Ground turkey (4oz)',g:25},
+      {label:'Hard boiled eggs x2',g:12},{label:'Protein bar',g:20},
+    ],
+    accentColor: '#00c9a7',
+  }
+};
+const RULES=[{"num": 1, "name": "TWO WORKOUTS", "desc": "1 hard session + 1 easy (walk/play with the dog). Both count."}, {"num": 2, "name": "1 GALLON OF WATER", "desc": "128 oz every day. Fill the jug in the morning."}, {"num": 3, "name": "NO SOCIAL MEDIA / YT", "desc": "Zero Instagram, TikTok, Twitter, YouTube. No exceptions."}, {"num": 4, "name": "BOOK OF MORMON", "desc": "~7 pages/day. Finish all 531 pages by Day 75."}, {"num": 5, "name": "CLEAN DIET + PROTEIN", "desc": "Hit your protein goal daily. No sugar. No cheat meals."}, {"num": 6, "name": "NO PHONE IN BEDROOM", "desc": "Charge it outside. Protect your sleep and your mornings."}, {"num": 7, "name": "WEEKLY PROGRESS PHOTO", "desc": "Every 7 days. Document the transformation."}, {"num": 8, "name": "50,000 STEPS/WEEK", "desc": "~7,100 steps/day. Dog walks count. Move your body."}, {"num": 9, "name": "5 AM WAKE UP", "desc": "Every single day. No snooze. This is non-negotiable."}, {"num": 10, "name": "COLD SHOWER", "desc": "Every day. Short is fine. Get in, stay in for 60 seconds."}];
+const ICONS=["💪", "💧", "📵", "📖", "🥗", "🛏", "📸", "👟", "⏰", "🚿"];
+const START=new Date(2026,4,1);
+
+// ── Profile ───────────────────────────────────
+let prof = null;
+
+function selectProfile(id) {
+  prof = id;
+  localStorage.setItem('75h_profile', id);
+  document.getElementById('picker').classList.add('hidden');
+  applyProfileAccent();
+  updateHeader();
+  renderToday();
+  renderWorkout();
+  renderMeals();
+}
+
+function showPicker() {
+  document.getElementById('picker').classList.remove('hidden');
+}
+
+function applyProfileAccent() {
+  const color = PROFILES[prof].accentColor;
+  document.documentElement.style.setProperty('--accent', color);
+  document.getElementById('hdr-brand').textContent = PROFILES[prof].name.toUpperCase() + ' · 75H';
+}
+
+// ── Helpers ───────────────────────────────────
+function dkey(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function p2(n){return String(n).padStart(2,'0')}
+function today(){return dkey(new Date())}
+
+function cday(d){
+  const ms=new Date(d.getFullYear(),d.getMonth(),d.getDate())-START;
+  if(ms<0)return 0;
+  const n=Math.floor(ms/86400000)+1;
+  return n>75?76:n;
+}
+function phase(day){return day<=0?0:day<=25?1:day<=50?2:3}
+function phaseColor(p){return p===1?'var(--p1)':p===2?'var(--p2)':'var(--p3)'}
+function phaseName(p){return p===1?'Phase 1 — Base':p===2?'Phase 2 — Build':'Phase 3 — Peak'}
+
+function pk(suffix){return prof+'_'+suffix}
+function loadDay(k){try{return JSON.parse(localStorage.getItem(pk('75h_'+k))||'null')}catch(e){return null}}
+function saveDay(k,checks){localStorage.setItem(pk('75h_'+k),JSON.stringify({checks}))}
+function allData(){
+  const out={};
+  for(let i=0;i<75;i++){
+    const d=new Date(START.getTime()+i*86400000);
+    const k=dkey(d),s=loadDay(k);
+    if(s)out[k]=s;
+  }
+  return out;
+}
+function calcStreak(){
+  let streak=0,d=new Date();
+  const td=loadDay(today());
+  if(!td||!td.checks||!td.checks.every(Boolean)) d=new Date(d.getTime()-86400000);
+  for(let i=0;i<75;i++){
+    const day=cday(d);
+    if(day<1||day>75)break;
+    const s=loadDay(dkey(d));
+    if(!s||!s.checks||!s.checks.every(Boolean))break;
+    streak++;
+    d=new Date(d.getTime()-86400000);
+  }
+  return streak;
+}
+
+// ── Tabs ─────────────────────────────────────
+function goTab(name,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='progress')renderProgress();
+  if(name==='workout')renderWorkout();
+  if(name==='meals')renderMeals();
+}
+
+// ── Header ────────────────────────────────────
+function updateHeader(){
+  if(!prof)return;
+  const now=new Date(),day=cday(now),ph=phase(day);
+  const badge=document.getElementById('phase-badge');
+  const hdrDay=document.getElementById('hdr-day');
+  const streakEl=document.getElementById('streak-hdr');
+  if(day===0){
+    const diff=Math.ceil((START-now)/86400000);
+    hdrDay.textContent=`Starts in ${diff} day${diff===1?'':'s'}`;
+    badge.textContent='Pre-Challenge';
+    badge.style.cssText='background:rgba(119,119,170,.1);color:var(--sub);border:1px solid rgba(119,119,170,.25)';
+  } else if(day>75){
+    hdrDay.textContent='Challenge Complete 🏆';
+    badge.textContent='DONE';
+    badge.style.cssText='background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3)';
+  } else {
+    const wo=PROFILES[prof].workouts.find(w=>w.day===day);
+    hdrDay.textContent=`Day ${day} / 75  ·  ${wo?wo.date:''}`;
+    const c=ph===1?'74,158,255':ph===2?'0,201,167':'233,69,96';
+    badge.textContent=phaseName(ph);
+    badge.style.cssText=`background:rgba(${c},.1);color:${phaseColor(ph)};border:1px solid rgba(${c},.28)`;
+  }
+  const s=calcStreak();
+  streakEl.textContent=s>0?`🔥 ${s}-day streak`:'';
+}
+
+// ── Today ─────────────────────────────────────
+let checks=new Array(RULES.length).fill(false);
+const todayKey=today();
+
+function renderToday(){
+  if(!prof)return;
+  const now=new Date(),day=cday(now);
+  const preWrap=document.getElementById('pre-wrap');
+  const ringWrap=document.getElementById('ring-wrap');
+  if(day===0){
+    preWrap.style.display='block';ringWrap.style.display='none';
+    const diff=Math.ceil((START-now)/86400000);
+    document.getElementById('pre-days').textContent=diff;
+    document.getElementById('rules-list').innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px">Rules checklist starts May 1.<br>Get ready.</div>';
+    return;
+  }
+  preWrap.style.display='none';ringWrap.style.display='flex';
+  const saved=loadDay(todayKey);
+  checks=saved&&saved.checks?[...saved.checks]:new Array(RULES.length).fill(false);
+  rebuildRules();updateRing();updateBanner();
+}
+
+function rebuildRules(){
+  const list=document.getElementById('rules-list');
+  list.innerHTML='';
+  RULES.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.className='rule-card'+(checks[i]?' done':'');
+    d.innerHTML=`<div class="rule-icon">${ICONS[i]||'✅'}</div>
+      <div class="rule-info"><div class="rule-name">${r.name}</div><div class="rule-desc">${r.desc}</div></div>
+      <div class="chk"><span class="chk-mark">✓</span></div>`;
+    d.onclick=()=>toggle(i);
+    list.appendChild(d);
+  });
+}
+
+function toggle(i){
+  checks[i]=!checks[i];saveDay(todayKey,checks);
+  const cards=document.querySelectorAll('.rule-card');
+  cards[i].classList.toggle('done',checks[i]);
+  cards[i].querySelector('.chk-mark').style.opacity=checks[i]?'1':'0';
+  updateRing();updateBanner();updateHeader();
+}
+
+function updateRing(){
+  const done=checks.filter(Boolean).length,total=RULES.length;
+  const r=60,circ=2*Math.PI*r,frac=done/total;
+  const fg=document.getElementById('ring-fg');
+  fg.style.strokeDasharray=circ;fg.style.strokeDashoffset=circ*(1-frac);
+  fg.style.stroke=frac===1?'var(--gold)':'var(--teal)';
+  document.getElementById('ring-num').textContent=`${done}/${total}`;
+}
+
+function updateBanner(){
+  document.getElementById('banner').classList.toggle('show',checks.every(Boolean));
+}
+
+// ── Workout ───────────────────────────────────
+function renderWorkout(){
+  if(!prof)return;
+  const now=new Date(),day=cday(now);
+  const el=document.getElementById('wo-content');
+  if(day===0){const diff=Math.ceil((START-now)/86400000);el.innerHTML=`<div style="text-align:center;padding:48px 20px"><div style="font-size:52px;margin-bottom:14px">🚀</div><div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px">Starting in ${diff} day${diff===1?'':'s'}</div><div style="font-size:14px;color:var(--sub)">May 1, 2026 — Day 1</div></div>`;return;}
+  if(day>75){el.innerHTML=`<div style="text-align:center;padding:48px 20px"><div style="font-size:52px">🏆</div><div style="font-size:24px;font-weight:900;color:var(--gold);margin-top:14px">75 HARD COMPLETE</div><div style="font-size:14px;color:var(--sub);margin-top:10px">Every single day. You did it.</div></div>`;return;}
+  const wo=PROFILES[prof].workouts.find(w=>w.day===day);
+  if(!wo){el.innerHTML='<div style="padding:20px;color:var(--sub)">No workout found.</div>';return;}
+  const lines=wo.hard.split('\n').filter(Boolean);
+  const title=lines[0],steps=lines.slice(1),ph=wo.phase;
+  const ht=wo.hard.toUpperCase();
+  let badge='💪 Workout',bClass='b-default';
+  if(ht.includes('RUN')||ht.includes('JOG')){badge='🏃 Run';bClass='b-run';}
+  else if(ht.includes('SWIM')){badge='🏊 Swim';bClass='b-swim';}
+  else if(ht.includes('BIKE')){badge='🚴 Bike';bClass='b-bike';}
+  else if(ht.includes('LIFT')||ht.includes('UPPER')||ht.includes('LOWER')){badge='🏋️ Lift';bClass='b-lift';}
+  else if(ht.includes('CLIMB')){badge='🧗 Climb';bClass='b-climb';}
+  else if(ht.includes('WALK')||ht.includes('OUTDOOR')||ht.includes('MOVEMENT')||ht.includes('RECOVERY')){badge='🚶 Walk';bClass='b-walk';}
+  function sc(l){const u=l.toUpperCase();if(u.includes('WARM'))return 'step-wu';if(u.includes('WALK')&&!u.includes('COOL'))return 'step-walk';if(u.includes('JOG')||u.includes('RUN'))return 'step-run';if(u.includes('SWIM'))return 'step-swim';if(u.includes('BIKE')||u.includes('ZONE'))return 'step-bike';if(u.match(/\d+X\d+|BENCH|SQUAT|DEAD|PRESS|CURL|ROW|PULL|LUNGE|HIP|CALF|DIP|PUSH/))return 'step-lift';return '';}
+  const stepsHTML=steps.map(s=>`<div class="wo-step ${sc(s)}">${s}</div>`).join('');
+  const pc=ph===1?'74,158,255':ph===2?'0,201,167':'233,69,96';
+  const phaseNote=ph===1?'Build the habit. Consistency over intensity.':ph===2?'Volume is up — push a little harder each week.':'Peak phase. You have earned this — now prove it.';
+  el.innerHTML=`<div class="focus-chip">🎯 ${wo.focus}</div>
+    <div class="card"><span class="wo-badge ${bClass}">${badge}</span><div class="wo-title">${title}</div><div class="wo-steps">${stepsHTML}</div></div>
+    <div class="card easy-card" style="background:rgba(119,119,170,.06);border-color:rgba(119,119,170,.2)"><div class="easy-lbl">🐕 Easy Workout</div><div class="easy-txt">${wo.easy}</div></div>
+    <div class="card" style="background:rgba(${pc},.06);border-color:rgba(${pc},.2)"><div class="card-title">${phaseName(ph)}</div><div style="font-size:13px;color:var(--sub);line-height:1.5">${phaseNote}</div></div>`;
+}
+
+// ── Progress ──────────────────────────────────
+function renderProgress(){
+  if(!prof)return;
+  const now=new Date(),todayNum=cday(now),todayK=dkey(now);
+  const all=allData();let done=0;const status={};
+  for(let i=1;i<=75;i++){
+    const d=new Date(START.getTime()+(i-1)*86400000);
+    const k=dkey(d),s=all[k];
+    if(s&&s.checks){if(s.checks.every(Boolean)){status[k]='done';done++;}else if(s.checks.some(Boolean)){status[k]='partial';}}
+  }
+  document.getElementById('s-days').textContent=done;
+  document.getElementById('s-streak').textContent=calcStreak();
+  const pct=Math.round(done/75*100);
+  document.getElementById('pbar').style.width=pct+'%';
+  document.getElementById('pct-txt').textContent=`${done} / 75 days complete`;
+  const cal=document.getElementById('cal-grid');cal.innerHTML='';
+  for(let i=1;i<=75;i++){
+    const d=new Date(START.getTime()+(i-1)*86400000);
+    const k=dkey(d),dot=document.createElement('div');dot.className='cal-dot';
+    dot.title=`Day ${i}`;
+    if(status[k]==='done')dot.classList.add('done');
+    else if(status[k]==='partial')dot.classList.add('partial');
+    else if(i>todayNum)dot.classList.add('future');
+    if(k===todayK&&i===todayNum)dot.classList.add('today-dot');
+    cal.appendChild(dot);
+  }
+  const rs=document.getElementById('rule-stats');rs.innerHTML='';
+  const days=Object.values(all).filter(s=>s&&s.checks);
+  RULES.forEach((r,i)=>{
+    const pct=days.length?Math.round(days.filter(s=>s.checks[i]).length/days.length*100):0;
+    const div=document.createElement('div');div.className='r-stat';
+    div.innerHTML=`<span style="font-size:15px;flex-shrink:0">${ICONS[i]||''}</span>
+      <span style="font-size:12px;color:var(--text);flex:1;line-height:1.2">${r.name}</span>
+      <div class="r-stat-bar"><div class="r-stat-fill" style="width:${pct}%"></div></div>
+      <span class="r-stat-pct">${pct}%</span>`;
+    rs.appendChild(div);
+  });
+}
+
+// ── Protein tracker ───────────────────────────
+function pKey(){return pk('75p_'+today())}
+function loadLog(){try{return JSON.parse(localStorage.getItem(pKey())||'[]')}catch(e){return[]}}
+function saveLog(l){localStorage.setItem(pKey(),JSON.stringify(l))}
+function totalP(){return loadLog().reduce((s,e)=>s+e.g,0)}
+function addP(label,g){
+  const l=loadLog();const t=new Date();
+  l.push({label,g,time:`${t.getHours()%12||12}:${String(t.getMinutes()).padStart(2,'0')} ${t.getHours()<12?'AM':'PM'}`});
+  saveLog(l);renderMeals();
+}
+function removeP(i){const l=loadLog();l.splice(i,1);saveLog(l);renderMeals();}
+function addCustomP(){
+  const f=document.getElementById('cust-food').value.trim();
+  const g=parseInt(document.getElementById('cust-g').value);
+  if(f&&g>0){addP(f,g);document.getElementById('cust-food').value='';document.getElementById('cust-g').value='';}
+}
+function renderMeals(){
+  if(!prof)return;
+  const PT=PROFILES[prof].pt;
+  const total=totalP(),pct=Math.min(total/PT,1);
+  const r=60,circ=2*Math.PI*r;
+  const fg=document.getElementById('pt-fg');
+  if(fg){fg.style.strokeDasharray=circ;fg.style.strokeDashoffset=circ*(1-pct);fg.style.stroke=total>=PT?'var(--gold)':total>=PT*.75?'var(--teal)':total>=PT*.5?'#f5a623':'var(--red)';}
+  const numEl=document.getElementById('pt-num');if(numEl)numEl.textContent=total+'g';
+  const tEl=document.getElementById('pt-target');if(tEl)tEl.textContent=PT+'g';
+  const qg=document.getElementById('quick-grid');
+  if(qg){qg.innerHTML='';PROFILES[prof].quick.forEach(q=>{const btn=document.createElement('button');btn.className='q-btn';btn.onclick=()=>addP(q.label,q.g);btn.innerHTML=`<span class="q-name">${q.label}</span><span class="q-g">+${q.g}g</span>`;qg.appendChild(btn);});}
+  const logEl=document.getElementById('p-log');
+  if(logEl){
+    const log=loadLog();
+    if(!log.length){logEl.innerHTML='<div class="p-empty">Nothing logged yet — tap a quick add above.</div>';return;}
+    logEl.innerHTML=log.map((e,i)=>`<div class="p-entry"><div style="flex:1;min-width:0"><div class="p-entry-lbl">${e.label}</div><div class="p-entry-time">${e.time}</div></div><span class="p-grams">${e.g}g</span><button class="p-del" onclick="removeP(${i})">✕</button></div>`).join('');
+  }
+}
+
+// ── Init ──────────────────────────────────────
+const savedProf = localStorage.getItem('75h_profile');
+if(savedProf && PROFILES[savedProf]){
+  selectProfile(savedProf);
+}
+</script>
+</body>
+</html>
