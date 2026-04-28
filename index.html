@@ -109,10 +109,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);
 #banner.show{display:block;animation:pop .35s ease}
 .b-emoji{font-size:38px}.b-msg{font-size:16px;font-weight:900;color:var(--teal);margin-top:6px}
 .b-sub{font-size:12px;color:var(--sub);margin-top:4px}
-#pre-card{text-align:center;padding:32px 20px}
-#pre-days{font-size:64px;font-weight:900;line-height:1;color:var(--text)}
-#pre-lbl{font-size:13px;color:var(--sub);margin-top:4px}
-#pre-start{font-size:15px;font-weight:700;color:var(--teal);margin-top:10px}
+#pre-card{background:rgba(74,158,255,.07);border:1px solid rgba(74,158,255,.2);border-radius:13px;display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:2px}
+#pre-days{font-size:28px;font-weight:900;line-height:1;color:var(--blue)}
+#pre-lbl{font-size:12px;color:var(--sub);margin-top:2px}
+#pre-start{font-size:13px;font-weight:700;color:var(--teal);margin-top:2px}
 
 /* WORKOUT LOGGER */
 .type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
@@ -266,9 +266,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);
     <div id="tab-today" class="tab-panel active">
       <div id="banner"><div class="b-emoji">🔥</div><div class="b-msg">DAY COMPLETE!</div><div class="b-sub">All 10 rules locked in. Streak alive.</div></div>
       <div id="pre-wrap" style="display:none">
-        <div class="card" id="pre-card">
-          <div id="pre-days">—</div><div id="pre-lbl">days until the challenge</div>
-          <div id="pre-start">Starts May 1, 2026</div>
+        <div id="pre-card" style="display:none">
+          <div id="pre-days" style="font-size:28px;font-weight:900;color:var(--blue)">—</div>
+          <div><div id="pre-lbl" style="font-size:12px;color:var(--sub)">days to go</div><div id="pre-start" style="font-size:13px;font-weight:700;color:var(--teal)">Challenge starts May 1</div></div>
         </div>
       </div>
       <div id="ring-wrap">
@@ -532,15 +532,15 @@ function renderToday(){
   const preWrap=document.getElementById('pre-wrap');
   const ringWrap=document.getElementById('ring-wrap');
   if(day===0){
-    preWrap.style.display='block';ringWrap.style.display='none';
     const diff=Math.ceil((START-now)/86400000);
     document.getElementById('pre-days').textContent=diff;
-    document.getElementById('rules-list').innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);font-size:13px">Rules checklist starts May 1.<br>Get ready.</div>';
-    return;
+    preWrap.style.display='block';ringWrap.style.display='flex';
+  } else {
+    preWrap.style.display='none';ringWrap.style.display='flex';
   }
-  preWrap.style.display='none';ringWrap.style.display='flex';
   const saved=loadDay(todayKey);
   checks=saved&&saved.checks?[...saved.checks]:new Array(RULES.length).fill(false);
+  // pre-challenge and post-challenge: still show the list for testing
   rebuildRules();updateRing();updateBanner();
 }
 
