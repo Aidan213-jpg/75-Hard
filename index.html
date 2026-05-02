@@ -401,29 +401,27 @@ const PROFILES = {
   aidan: {
     name: 'Aidan',
     pt: 200,
-    rules: [{name:"TWO WORKOUTS",desc:"1 hard session + 1 easy (walk/play with the dog). Both count."},{name:"1 GALLON OF WATER",desc:"128 oz every day. Fill the jug in the morning."},{name:"NO SOCIAL MEDIA / YT",desc:"Zero Instagram, TikTok, Twitter, YouTube. No exceptions."},{name:"BOOK OF MORMON",desc:"~7 pages/day. Finish all 531 pages by Day 75."},{name:"CLEAN DIET + PROTEIN",desc:"Hit your protein goal daily. No sugar. No cheat meals."},{name:"NO PHONE IN BEDROOM",desc:"Charge it outside. Protect your sleep and your mornings."},{name:"WEEKLY PROGRESS PHOTO",desc:"Every 7 days. Document the transformation."},{name:"50,000 STEPS/WEEK",desc:"~7,100 steps/day. Dog walks count. Move your body."},{name:"5 AM WAKE UP",desc:"Every single day. No snooze. This is non-negotiable."},{name:"COLD SHOWER",desc:"Every day. Short is fine. Get in, stay in for 60 seconds."}],
+    rules: [{name:"TWO WORKOUTS",desc:"1 hard session + 1 easy (walk/play with the dog). Both count."},{name:"1 GALLON OF WATER",desc:"128 oz every day. Fill the jug in the morning."},{name:"NO SOCIAL MEDIA / YT",desc:"Zero Instagram, TikTok, Twitter, YouTube. No exceptions."},{name:"BOOK OF MORMON",desc:"~7 pages/day. Finish all 531 pages by Day 75."},{name:"CLEAN DIET + PROTEIN",desc:"Hit your protein goal daily. No sugar. No cheat meals."},{name:"NO PHONE IN BEDROOM",desc:"Charge it outside. Protect your sleep and your mornings."},{name:"50,000 STEPS/WEEK",desc:"~7,100 steps/day. Dog walks count. Move your body."},{name:"5 AM WAKE UP",desc:"Every single day. No snooze. This is non-negotiable."},{name:"COLD SHOWER",desc:"Every day. Short is fine. Get in, stay in for 60 seconds."}],
     icons: ["\ud83d\udcaa", "\ud83d\udca7", "\ud83d\udcf5", "\ud83d\udcd6", "\ud83e\udd57", "\ud83d\udecf", "\ud83d\udcf8", "\ud83d\udc5f", "\u23f0", "\ud83d\udebf"],
     quick: [
       {label:'Eggs + bacon',g:35},{label:'Eggs + bagel',g:25},
       {label:'Protein shake',g:30},{label:'Chicken breast (6oz)',g:45},
       {label:'Tuna (can)',g:25},{label:'Greek yogurt (plain)',g:15},
       {label:'Ground turkey (6oz)',g:38},{label:'Salmon fillet (6oz)',g:40},
-      {label:'Cottage cheese (1c)',g:25},{label:'Hard boiled eggs x2',g:12},
-    ],
+      {label:'Cottage cheese (1c)',g:25},{label:'Hard boiled eggs x2',g:12}],
     accentColor: '#e94560',
   },
   taylor: {
     name: 'Taylor',
     pt: 120,
-    rules: [{"name": "BOOK OF MORMON", "desc": "Read 2 chapters daily"}, {"name": "NIGHTLY PRAYERS", "desc": "Say your nightly prayers before bed"}, {"name": "KINDLE READING", "desc": "30 minutes of reading on your Kindle"}, {"name": "WORKOUT", "desc": "At least one workout today"}, {"name": "STEPS", "desc": "8,000\u201310,000 steps today"}, {"name": "WATER", "desc": "Drink 100 oz of water"}, {"name": "CALORIES & PROTEIN", "desc": "1,800\u20131,900 cal and 120g protein"}, {"name": "GRATITUDE JOURNAL", "desc": "Write in your gratitude journal"}, {"name": "PROGRESS PHOTO", "desc": "Weekly progress photo (every 7 days)"}],
+    rules: [{"name": "BOOK OF MORMON", "desc": "Read 2 chapters daily"}, {"name": "NIGHTLY PRAYERS", "desc": "Say your nightly prayers before bed"}, {"name": "KINDLE READING", "desc": "30 minutes of reading on your Kindle"}, {"name": "WORKOUT", "desc": "At least one workout today"}, {"name": "STEPS", "desc": "8,000\u201310,000 steps today"}, {"name": "WATER", "desc": "Drink 100 oz of water"}, {"name": "CALORIES & PROTEIN", "desc": "1,800\u20131,900 cal and 120g protein"}, {"name": "GRATITUDE JOURNAL", "desc": "Write in your gratitude journal"}],
     icons: ["\ud83d\udcd6", "\ud83d\ude4f", "\ud83d\udcda", "\ud83d\udcaa", "\ud83d\udc5f", "\ud83d\udca7", "\ud83e\udd57", "\ud83d\udcd4", "\ud83d\udcf8"],
     quick: [
       {label:'Protein shake',g:30},{label:'Greek yogurt (plain)',g:15},
       {label:'Chicken breast (4oz)',g:30},{label:'Eggs + egg whites',g:25},
       {label:'Cottage cheese (1c)',g:25},{label:'Tuna (can)',g:25},
       {label:'Salmon fillet (4oz)',g:27},{label:'Ground turkey (4oz)',g:25},
-      {label:'Hard boiled eggs x2',g:12},{label:'Protein bar',g:20},
-    ],
+      {label:'Hard boiled eggs x2',g:12},{label:'Protein bar',g:20}],
     accentColor: '#00c9a7',
   }
 };
@@ -599,8 +597,7 @@ const WO_TYPES=[
   {id:'bike', icon:'🚴', label:'Bike', dist:true,  unit:'mi', ph:'10'},
   {id:'swim', icon:'🏊', label:'Swim', dist:true,  unit:'yd', ph:'500'},
   {id:'lift', icon:'🏋️', label:'Lift', dist:false, unit:'',  ph:''},
-  {id:'other',icon:'⚡', label:'Other',dist:false, unit:'',  ph:''},
-];
+  {id:'other',icon:'⚡', label:'Other',dist:false, unit:'',  ph:''}];
 function wKey(){return pk('75w_log');}
 function loadWLog(){try{return JSON.parse(localStorage.getItem(wKey())||'[]');}catch(e){return[];}}
 function saveWLog(l){localStorage.setItem(wKey(),JSON.stringify(l));}
@@ -751,18 +748,15 @@ function delMeas(id){saveMeasLog(loadMeas().filter(e=>e.id!==id));renderMeasHist
 function renderMeasHistory(){
   if(!prof)return;
   const log=loadMeas();
-  const now=new Date(),curDay=cday(now);
-  const isMeasDay=curDay>0&&(curDay===1||(curDay-1)%7===0);
-  const nextMeas=curDay<=0?1:isMeasDay?curDay:curDay+7-((curDay-1)%7);
-  const daysLeft=curDay<=0?(1):isMeasDay?0:nextMeas-curDay;
+  const now=new Date();
+  const isFri=now.getDay()===5;
+  const daysToFri=isFri?0:(5-now.getDay()+7)%7||7;
   const prompt=document.getElementById('meas-prompt');
   if(prompt){
-    if(isMeasDay){
-      prompt.innerHTML='<div style="background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.25);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--teal)">📸 Measurement day — log your weight and waist!</div>';
-    } else if(curDay<=0){
-      prompt.innerHTML='<div style="font-size:12px;color:var(--sub);margin-bottom:12px">Log your Day 1 baseline when the challenge starts</div>';
+    if(isFri){
+      prompt.innerHTML='<div style="background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.25);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--teal)">📸 Friday — log your measurements!</div>';
     } else {
-      prompt.innerHTML='<div style="font-size:12px;color:var(--sub);margin-bottom:12px">Next measurement day in '+daysLeft+' day'+(daysLeft===1?'':'s')+' (Day '+nextMeas+')</div>';
+      prompt.innerHTML='<div style="font-size:12px;color:var(--sub);margin-bottom:10px">Next measurement Friday in '+daysToFri+' day'+(daysToFri===1?'':'s')+'</div>';
     }
   }
   const hist=document.getElementById('meas-history');
