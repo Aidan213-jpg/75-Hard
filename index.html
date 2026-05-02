@@ -856,7 +856,7 @@ function renderMeals(){
   const logEl=document.getElementById('p-log');
   if(logEl){
     const log=loadLog();
-    if(!log.length){logEl.innerHTML='<div class="p-empty">Nothing logged yet — tap a quick add above.</div>';return;}
+    if(!log.length){logEl.innerHTML='<div class="p-empty">Nothing logged yet — tap a quick add above.</div>';}
     logEl.innerHTML=log.map((e,i)=>`<div class="p-entry"><div style="flex:1;min-width:0"><div class="p-entry-lbl">${e.label}</div><div class="p-entry-time">${e.time}</div></div><span class="p-grams">${e.g}g</span><button class="p-del" onclick="removeP(${i})">✕</button></div>`).join('');
   }
   renderWater();
