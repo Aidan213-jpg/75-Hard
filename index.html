@@ -392,6 +392,8 @@ const PROFILES = {
   aidan: {
     name: 'Aidan',
     pt: 200,
+    rules: [{name:"TWO WORKOUTS",desc:"1 hard session + 1 easy (walk/play with the dog). Both count."},{name:"1 GALLON OF WATER",desc:"128 oz every day. Fill the jug in the morning."},{name:"NO SOCIAL MEDIA / YT",desc:"Zero Instagram, TikTok, Twitter, YouTube. No exceptions."},{name:"BOOK OF MORMON",desc:"~7 pages/day. Finish all 531 pages by Day 75."},{name:"CLEAN DIET + PROTEIN",desc:"Hit your protein goal daily. No sugar. No cheat meals."},{name:"NO PHONE IN BEDROOM",desc:"Charge it outside. Protect your sleep and your mornings."},{name:"WEEKLY PROGRESS PHOTO",desc:"Every 7 days. Document the transformation."},{name:"50,000 STEPS/WEEK",desc:"~7,100 steps/day. Dog walks count. Move your body."},{name:"5 AM WAKE UP",desc:"Every single day. No snooze. This is non-negotiable."},{name:"COLD SHOWER",desc:"Every day. Short is fine. Get in, stay in for 60 seconds."}],
+    icons: ["\ud83d\udcaa", "\ud83d\udca7", "\ud83d\udcf5", "\ud83d\udcd6", "\ud83e\udd57", "\ud83d\udecf", "\ud83d\udcf8", "\ud83d\udc5f", "\u23f0", "\ud83d\udebf"],
     quick: [
       {label:'Eggs + bacon',g:35},{label:'Eggs + bagel',g:25},
       {label:'Protein shake',g:30},{label:'Chicken breast (6oz)',g:45},
@@ -403,7 +405,9 @@ const PROFILES = {
   },
   taylor: {
     name: 'Taylor',
-    pt: 150,
+    pt: 120,
+    rules: [{"name": "BOOK OF MORMON", "desc": "Read 2 chapters daily"}, {"name": "NIGHTLY PRAYERS", "desc": "Say your nightly prayers before bed"}, {"name": "KINDLE READING", "desc": "30 minutes of reading on your Kindle"}, {"name": "WORKOUT", "desc": "At least one workout today"}, {"name": "STEPS", "desc": "8,000\u201310,000 steps today"}, {"name": "WATER", "desc": "Drink 100 oz of water"}, {"name": "CALORIES & PROTEIN", "desc": "1,800\u20131,900 cal and 120g protein"}, {"name": "GRATITUDE JOURNAL", "desc": "Write in your gratitude journal"}, {"name": "PROGRESS PHOTO", "desc": "Weekly progress photo (every 7 days)"}],
+    icons: ["\ud83d\udcd6", "\ud83d\ude4f", "\ud83d\udcda", "\ud83d\udcaa", "\ud83d\udc5f", "\ud83d\udca7", "\ud83e\udd57", "\ud83d\udcd4", "\ud83d\udcf8"],
     quick: [
       {label:'Protein shake',g:30},{label:'Greek yogurt (plain)',g:15},
       {label:'Chicken breast (4oz)',g:30},{label:'Eggs + egg whites',g:25},
@@ -414,8 +418,6 @@ const PROFILES = {
     accentColor: '#00c9a7',
   }
 };
-const RULES=[{"num": 1, "name": "TWO WORKOUTS", "desc": "1 hard session + 1 easy (walk/play with the dog). Both count."}, {"num": 2, "name": "1 GALLON OF WATER", "desc": "128 oz every day. Fill the jug in the morning."}, {"num": 3, "name": "NO SOCIAL MEDIA / YT", "desc": "Zero Instagram, TikTok, Twitter, YouTube. No exceptions."}, {"num": 4, "name": "BOOK OF MORMON", "desc": "~7 pages/day. Finish all 531 pages by Day 75."}, {"num": 5, "name": "CLEAN DIET + PROTEIN", "desc": "Hit your protein goal daily. No sugar. No cheat meals."}, {"num": 6, "name": "NO PHONE IN BEDROOM", "desc": "Charge it outside. Protect your sleep and your mornings."}, {"num": 7, "name": "WEEKLY PROGRESS PHOTO", "desc": "Every 7 days. Document the transformation."}, {"num": 8, "name": "50,000 STEPS/WEEK", "desc": "~7,100 steps/day. Dog walks count. Move your body."}, {"num": 9, "name": "5 AM WAKE UP", "desc": "Every single day. No snooze. This is non-negotiable."}, {"num": 10, "name": "COLD SHOWER", "desc": "Every day. Short is fine. Get in, stay in for 60 seconds."}];
-const ICONS=["💪", "💧", "📵", "📖", "🥗", "🛏", "📸", "👟", "⏰", "🚿"];
 const START=new Date(2026,4,1);
 
 // ── Profile ───────────────────────────────────
@@ -523,7 +525,7 @@ function updateHeader(){
 }
 
 // ── Today ─────────────────────────────────────
-let checks=new Array(RULES.length).fill(false);
+let checks=new Array(PROFILES[prof]?PROFILES[prof].rules.length:10).fill(false);
 const todayKey=today();
 
 function renderToday(){
@@ -547,10 +549,11 @@ function renderToday(){
 function rebuildRules(){
   const list=document.getElementById('rules-list');
   list.innerHTML='';
+  const RULES=PROFILES[prof].rules,ICONS=PROFILES[prof].icons;
   RULES.forEach((r,i)=>{
     const d=document.createElement('div');
     d.className='rule-card'+(checks[i]?' done':'');
-    d.innerHTML=`<div class="rule-icon">${ICONS[i]||'✅'}</div>
+    d.innerHTML=`<div class="rule-icon">${(ICONS&&ICONS[i])||'✅'}</div>
       <div class="rule-info"><div class="rule-name">${r.name}</div><div class="rule-desc">${r.desc}</div></div>
       <div class="chk"><span class="chk-mark">✓</span></div>`;
     d.onclick=()=>toggle(i);
@@ -718,7 +721,7 @@ function renderProgress(){
   RULES.forEach((r,i)=>{
     const pct=days.length?Math.round(days.filter(s=>s.checks[i]).length/days.length*100):0;
     const div=document.createElement('div');div.className='r-stat';
-    div.innerHTML=`<span style="font-size:15px;flex-shrink:0">${ICONS[i]||''}</span>
+    div.innerHTML=`<span style="font-size:15px;flex-shrink:0">${(PICONS&&PICONS[i])||''}</span>
       <span style="font-size:12px;color:var(--text);flex:1;line-height:1.2">${r.name}</span>
       <div class="r-stat-bar"><div class="r-stat-fill" style="width:${pct}%"></div></div>
       <span class="r-stat-pct">${pct}%</span>`;
