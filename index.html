@@ -351,7 +351,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);
           <span style="font-size:10px;color:var(--sub);display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;outline:2px solid var(--red)"></span>Today</span>
         </div>
       </div>
-      <div class="card"><div class="card-title">Rule Completion</div><div id="rule-stats"></div></div>
       <div class="section-hd">Body Measurements</div>
       <div class="card" style="padding:14px">
         <div id="meas-prompt"></div>
@@ -727,18 +726,6 @@ function renderProgress(){
     if(k===todayK&&i===todayNum)dot.classList.add('today-dot');
     cal.appendChild(dot);
   }
-  const rs=document.getElementById('rule-stats');rs.innerHTML='';
-  const days=Object.values(all).filter(s=>s&&s.checks);
-  const PRULES=PROFILES[prof].rules,PICONS=PROFILES[prof].icons;
-  PRULES.forEach((r,i)=>{
-    const pct=days.length?Math.round(days.filter(s=>s.checks[i]).length/days.length*100):0;
-    const div=document.createElement('div');div.className='r-stat';
-    div.innerHTML=`<span style="font-size:15px;flex-shrink:0">${(PICONS&&PICONS[i])||''}</span>
-      <span style="font-size:12px;color:var(--text);flex:1;line-height:1.2">${r.name}</span>
-      <div class="r-stat-bar"><div class="r-stat-fill" style="width:${pct}%"></div></div>
-      <span class="r-stat-pct">${pct}%</span>`;
-    rs.appendChild(div);
-  });
   renderMeasHistory();
 }
 
@@ -764,14 +751,18 @@ function delMeas(id){saveMeasLog(loadMeas().filter(e=>e.id!==id));renderMeasHist
 function renderMeasHistory(){
   if(!prof)return;
   const log=loadMeas();
-  const now=new Date(),isSun=now.getDay()===0;
+  const now=new Date(),curDay=cday(now);
+  const isMeasDay=curDay>0&&(curDay===1||(curDay-1)%7===0);
+  const nextMeas=curDay<=0?1:isMeasDay?curDay:curDay+7-((curDay-1)%7);
+  const daysLeft=curDay<=0?(1):isMeasDay?0:nextMeas-curDay;
   const prompt=document.getElementById('meas-prompt');
   if(prompt){
-    if(isSun){
-      prompt.innerHTML='<div style="background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.25);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--teal)">📸 Sunday check-in — log your measurements!</div>';
+    if(isMeasDay){
+      prompt.innerHTML='<div style="background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.25);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:700;color:var(--teal)">📸 Measurement day — log your weight and waist!</div>';
+    } else if(curDay<=0){
+      prompt.innerHTML='<div style="font-size:12px;color:var(--sub);margin-bottom:12px">Log your Day 1 baseline when the challenge starts</div>';
     } else {
-      const daysLeft=(7-now.getDay())%7||7;
-      prompt.innerHTML='<div style="font-size:12px;color:var(--sub);margin-bottom:12px">Next Sunday check-in in '+daysLeft+' day'+(daysLeft===1?'':'s')+'</div>';
+      prompt.innerHTML='<div style="font-size:12px;color:var(--sub);margin-bottom:12px">Next measurement day in '+daysLeft+' day'+(daysLeft===1?'':'s')+' (Day '+nextMeas+')</div>';
     }
   }
   const hist=document.getElementById('meas-history');
@@ -782,7 +773,8 @@ function renderMeasHistory(){
     let wD='',wtD='';
     if(prev&&e.weight&&prev.weight){const d=(e.weight-prev.weight);const s=d<0?'color:var(--teal)':(d>0?'color:var(--red)':'color:var(--sub)');wD=' <span style="'+s+';font-size:11px">'+(d>0?'+':'')+d.toFixed(1)+'</span>';}
     if(prev&&e.waist&&prev.waist){const d=(e.waist-prev.waist);const s=d<0?'color:var(--teal)':(d>0?'color:var(--red)':'color:var(--sub)');wtD=' <span style="'+s+';font-size:11px">'+(d>0?'+':'')+d.toFixed(1)+'"</span>';}
-    const wk=e.week?'Week '+e.week:'Pre-Challenge';
+    const measNum=e.day?Math.ceil(e.day/7):0;
+    const wk=measNum?'Measurement '+measNum:(e.day?'Day '+e.day:'Pre-Challenge');
     const dl=e.day?' · Day '+e.day:'';
     return '<div class="hist-entry"><div class="hist-ico">\u{1F4CA}</div><div class="hist-info"><div class="hist-title">'+wk+dl+'</div><div class="hist-date">'+e.date+'</div><div class="hist-chips">'+(e.weight?'<span class="hist-chip">⚖️ '+e.weight+' lbs'+wD+'</span>':'')+(e.waist?'<span class="hist-chip">\u{1F4CF} '+e.waist+'"'+wtD+'</span>':'')+'</div></div><button class="hist-del" onclick="delMeas('+e.id+')">✕</button></div>';
   }).join('');
