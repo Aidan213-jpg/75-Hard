@@ -277,6 +277,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);
     <!-- TODAY -->
     <div id="tab-today" class="tab-panel active">
       <div id="banner"><div class="b-emoji">🔥</div><div class="b-msg">DAY COMPLETE!</div><div class="b-sub">All 10 rules locked in. Streak alive.</div></div>
+      <div id="phase-banner" style="display:none;background:linear-gradient(135deg,rgba(74,158,255,.1),rgba(0,201,167,.08));border:1px solid rgba(74,158,255,.35);border-radius:14px;padding:18px;text-align:center;margin-bottom:10px;animation:pop .4s ease">
+        <div id="pb-emoji" style="font-size:38px"></div>
+        <div id="pb-title" style="font-size:16px;font-weight:900;color:var(--blue);margin-top:6px"></div>
+        <div id="pb-msg" style="font-size:12px;color:var(--sub);margin-top:5px;line-height:1.5"></div>
+      </div>
       <div id="pre-wrap" style="display:none">
         <div id="pre-card" style="display:none">
           <div id="pre-days" style="font-size:28px;font-weight:900;color:var(--blue)">—</div>
@@ -604,6 +609,25 @@ function renderToday(){
   checks=saved&&saved.checks?[...saved.checks]:new Array(PROFILES[prof].rules.length).fill(false);
   // pre-challenge and post-challenge: still show the list for testing
   rebuildRules();updateRing();updateBanner();
+  // Phase transition banners
+  const pb=document.getElementById('phase-banner');
+  if(pb){
+    const phases={
+      26:{emoji:'🚀',title:'PHASE 2 — BUILD',color:'var(--blue)',msg:'Intensity steps up. Push your distances,<br>hit harder efforts, and dial in your nutrition.'},
+      51:{emoji:'🏆',title:'PHASE 3 — PEAK',color:'var(--red)',msg:'Final 25 days. Race pace. Maximum effort.<br>This is what you trained for — leave nothing behind.'}
+    };
+    const ph=phases[day];
+    if(ph){
+      document.getElementById('pb-emoji').textContent=ph.emoji;
+      const t=document.getElementById('pb-title');t.textContent=ph.title;t.style.color=ph.color;
+      document.getElementById('pb-msg').innerHTML=ph.msg;
+      pb.style.borderColor=ph.color==='var(--red)'?'rgba(233,69,96,.35)':'rgba(74,158,255,.35)';
+      pb.style.background=ph.color==='var(--red)'?'linear-gradient(135deg,rgba(233,69,96,.1),rgba(245,200,66,.06))':'linear-gradient(135deg,rgba(74,158,255,.1),rgba(0,201,167,.08))';
+      pb.style.display='block';
+    } else {
+      pb.style.display='none';
+    }
+  }
 }
 
 function rebuildRules(){
