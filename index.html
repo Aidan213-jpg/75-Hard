@@ -219,6 +219,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);
 .section-hd{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin:14px 0 8px}
 .section-hd:first-child{margin-top:2px}
 @keyframes pop{0%{transform:scale(.5);opacity:0}65%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+/* STEPS / WATER / CAL */
+.tracker-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:10px;margin-bottom:2px}
+.tracker-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
+.tracker-pbar{height:9px;background:var(--border);border-radius:20px;overflow:hidden;margin:8px 0 5px}
+.tracker-fill-blue{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--teal));transition:width .6s ease}
+.tracker-fill-gold{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),#f5a623);transition:width .6s ease}
+.tracker-info{text-align:center;font-size:12px;color:var(--sub);margin-bottom:8px}
+.oz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.oz-btn{background:rgba(74,158,255,.08);border:1.5px solid rgba(74,158,255,.25);border-radius:10px;
+  padding:9px 4px;font-size:12px;font-weight:800;color:var(--blue);cursor:pointer;text-align:center;
+  -webkit-user-select:none;user-select:none;transition:all .15s}
+.oz-btn:active{background:rgba(74,158,255,.18)}
 </style>
 </head>
 <body>
@@ -361,6 +373,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);
         <button class="save-btn" onclick="saveMeas()">Log Measurements</button>
       </div>
       <div id="meas-history"></div>
+      <div style="margin-top:6px;margin-bottom:2px">
+        <button class="save-btn" onclick="exportData()" style="background:rgba(119,119,170,.1);border:1px solid var(--border);color:var(--sub);font-size:13px">📤 Export My Data</button>
+      </div>
     </div>
 
     <!-- MEALS / PROTEIN -->
@@ -373,6 +388,41 @@ html,body{height:100%;background:var(--bg);color:var(--text);
           <text id="pt-unit" x="74" y="79">of <tspan id="pt-target">200g</tspan></text>
           <text id="pt-lbl" x="74" y="96">protein</text>
         </svg>
+      </div>
+      <p class="section-hd">Water</p>
+      <div class="tracker-card">
+        <div class="oz-grid">
+          <button class="oz-btn" onclick="addWater(8)">+8 oz</button>
+          <button class="oz-btn" onclick="addWater(16)">+16 oz</button>
+          <button class="oz-btn" onclick="addWater(20)">+20 oz</button>
+          <button class="oz-btn" onclick="addWater(32)">+32 oz</button>
+        </div>
+        <div class="cust-row" style="margin-bottom:8px">
+          <input class="cust-food" id="water-custom" type="number" placeholder="Custom oz…" inputmode="decimal">
+          <button class="cust-add" onclick="addWaterCustom()">Add</button>
+        </div>
+        <div class="tracker-pbar"><div class="tracker-fill-blue" id="water-bar" style="width:0%"></div></div>
+        <div class="tracker-info" id="water-info"></div>
+        <div id="water-log"></div>
+      </div>
+      <div id="cal-section" style="display:none">
+        <p class="section-hd">Calories</p>
+        <div class="tracker-card">
+          <div class="q-grid" style="margin-bottom:8px">
+            <button class="q-btn" onclick="addCal('Breakfast',400)"><span class="q-name">Breakfast</span><span class="q-g" style="color:var(--gold)">~400</span></button>
+            <button class="q-btn" onclick="addCal('Lunch',500)"><span class="q-name">Lunch</span><span class="q-g" style="color:var(--gold)">~500</span></button>
+            <button class="q-btn" onclick="addCal('Dinner',600)"><span class="q-name">Dinner</span><span class="q-g" style="color:var(--gold)">~600</span></button>
+            <button class="q-btn" onclick="addCal('Snack',150)"><span class="q-name">Snack</span><span class="q-g" style="color:var(--gold)">~150</span></button>
+          </div>
+          <div class="cust-row" style="margin-bottom:8px">
+            <input class="cust-food" id="cal-label" type="text" placeholder="Meal name…">
+            <input class="cust-g" id="cal-amt" type="number" placeholder="cal" min="1" inputmode="numeric">
+            <button class="cust-add" onclick="addCalCustom()">Add</button>
+          </div>
+          <div class="tracker-pbar"><div class="tracker-fill-gold" id="cal-bar" style="width:0%"></div></div>
+          <div class="tracker-info" id="cal-info"></div>
+          <div id="cal-log"></div>
+        </div>
       </div>
       <p class="section-hd">Quick Add</p>
       <div class="q-grid" id="quick-grid"></div>
@@ -402,26 +452,28 @@ const PROFILES = {
     name: 'Aidan',
     pt: 200,
     rules: [{name:"TWO WORKOUTS",desc:"1 hard session + 1 easy (walk/play with the dog). Both count."},{name:"1 GALLON OF WATER",desc:"128 oz every day. Fill the jug in the morning."},{name:"NO SOCIAL MEDIA / YT",desc:"Zero Instagram, TikTok, Twitter, YouTube. No exceptions."},{name:"BOOK OF MORMON",desc:"~7 pages/day. Finish all 531 pages by Day 75."},{name:"CLEAN DIET + PROTEIN",desc:"Hit your protein goal daily. No sugar. No cheat meals."},{name:"NO PHONE IN BEDROOM",desc:"Charge it outside. Protect your sleep and your mornings."},{name:"50,000 STEPS/WEEK",desc:"~7,100 steps/day. Dog walks count. Move your body."},{name:"5 AM WAKE UP",desc:"Every single day. No snooze. This is non-negotiable."},{name:"COLD SHOWER",desc:"Every day. Short is fine. Get in, stay in for 60 seconds."}],
-    icons: ["\ud83d\udcaa", "\ud83d\udca7", "\ud83d\udcf5", "\ud83d\udcd6", "\ud83e\udd57", "\ud83d\udecf", "\ud83d\udcf8", "\ud83d\udc5f", "\u23f0", "\ud83d\udebf"],
+    icons: ["\ud83d\udcaa", "\ud83d\udca7", "\ud83d\udcf5", "\ud83d\udcd6", "\ud83e\udd57", "\ud83d\udecf", "\ud83d\udc5f", "\u23f0", "\ud83d\udebf"],
     quick: [
       {label:'Eggs + bacon',g:35},{label:'Eggs + bagel',g:25},
       {label:'Protein shake',g:30},{label:'Chicken breast (6oz)',g:45},
       {label:'Tuna (can)',g:25},{label:'Greek yogurt (plain)',g:15},
       {label:'Ground turkey (6oz)',g:38},{label:'Salmon fillet (6oz)',g:40},
       {label:'Cottage cheese (1c)',g:25},{label:'Hard boiled eggs x2',g:12}],
+    wt: 128, cal: 2500,
     accentColor: '#e94560',
   },
   taylor: {
     name: 'Taylor',
     pt: 120,
     rules: [{"name": "BOOK OF MORMON", "desc": "Read 2 chapters daily"}, {"name": "NIGHTLY PRAYERS", "desc": "Say your nightly prayers before bed"}, {"name": "KINDLE READING", "desc": "30 minutes of reading on your Kindle"}, {"name": "WORKOUT", "desc": "At least one workout today"}, {"name": "STEPS", "desc": "8,000\u201310,000 steps today"}, {"name": "WATER", "desc": "Drink 100 oz of water"}, {"name": "CALORIES & PROTEIN", "desc": "1,800\u20131,900 cal and 120g protein"}, {"name": "GRATITUDE JOURNAL", "desc": "Write in your gratitude journal"}],
-    icons: ["\ud83d\udcd6", "\ud83d\ude4f", "\ud83d\udcda", "\ud83d\udcaa", "\ud83d\udc5f", "\ud83d\udca7", "\ud83e\udd57", "\ud83d\udcd4", "\ud83d\udcf8"],
+    icons: ["\ud83d\udcd6", "\ud83d\ude4f", "\ud83d\udcda", "\ud83d\udcaa", "\ud83d\udc5f", "\ud83d\udca7", "\ud83e\udd57", "\ud83d\udcd4"],
     quick: [
       {label:'Protein shake',g:30},{label:'Greek yogurt (plain)',g:15},
       {label:'Chicken breast (4oz)',g:30},{label:'Eggs + egg whites',g:25},
       {label:'Cottage cheese (1c)',g:25},{label:'Tuna (can)',g:25},
       {label:'Salmon fillet (4oz)',g:27},{label:'Ground turkey (4oz)',g:25},
       {label:'Hard boiled eggs x2',g:12},{label:'Protein bar',g:20}],
+    wt: 100, cal: 1850,
     accentColor: '#00c9a7',
   }
 };
@@ -807,6 +859,119 @@ function renderMeals(){
     if(!log.length){logEl.innerHTML='<div class="p-empty">Nothing logged yet — tap a quick add above.</div>';return;}
     logEl.innerHTML=log.map((e,i)=>`<div class="p-entry"><div style="flex:1;min-width:0"><div class="p-entry-lbl">${e.label}</div><div class="p-entry-time">${e.time}</div></div><span class="p-grams">${e.g}g</span><button class="p-del" onclick="removeP(${i})">✕</button></div>`).join('');
   }
+  renderWater();
+  renderCals();
+}
+
+
+
+// ── Water ────────────────────────────────────
+function h2oKey(){return pk('75h2o_'+today())}
+function loadWater(){try{return JSON.parse(localStorage.getItem(h2oKey())||'[]')}catch(e){return[]}}
+function saveWaterLog(l){localStorage.setItem(h2oKey(),JSON.stringify(l))}
+function addWater(oz){
+  if(!prof)return;
+  const l=loadWater();const t=new Date();
+  l.push({oz,time:`${t.getHours()%12||12}:${String(t.getMinutes()).padStart(2,'0')} ${t.getHours()<12?'AM':'PM'}`});
+  saveWaterLog(l);renderWater();
+}
+function addWaterCustom(){
+  const v=parseFloat(document.getElementById('water-custom')?.value||0);
+  if(!v||v<=0)return;
+  addWater(v);
+  document.getElementById('water-custom').value='';
+}
+function removeWater(i){const l=loadWater();l.splice(i,1);saveWaterLog(l);renderWater();}
+function totalWater(){return loadWater().reduce((s,e)=>s+(e.oz||0),0)}
+function renderWater(){
+  if(!prof)return;
+  const target=PROFILES[prof].wt||128;
+  const total=totalWater();
+  const pct=Math.min(total/target,1)*100;
+  const bar=document.getElementById('water-bar');
+  if(bar)bar.style.width=pct+'%';
+  const info=document.getElementById('water-info');
+  if(info){
+    const left=Math.max(0,target-total);
+    info.textContent=Math.round(total)+' / '+target+' oz'+(left>0?' · '+Math.round(left)+' oz to go':' ✓ Hydrated!');
+  }
+  const log=loadWater();
+  const logEl=document.getElementById('water-log');
+  if(logEl){
+    if(!log.length){logEl.innerHTML='<div class="p-empty">No water logged yet.</div>';}
+    else{logEl.innerHTML=log.map((e,i)=>`<div class="p-entry"><div style="flex:1;min-width:0"><div class="p-entry-lbl">💧 ${e.oz} oz</div><div class="p-entry-time">${e.time}</div></div><button class="p-del" onclick="removeWater(${i})">✕</button></div>`).join('');}
+  }
+}
+
+// ── Calories ─────────────────────────────────
+function calKey(){return pk('75kcal_'+today())}
+function loadCals(){try{return JSON.parse(localStorage.getItem(calKey())||'[]')}catch(e){return[]}}
+function saveCalLog(l){localStorage.setItem(calKey(),JSON.stringify(l))}
+function addCal(label,cal){
+  if(!prof)return;
+  const l=loadCals();const t=new Date();
+  l.push({label,cal,time:`${t.getHours()%12||12}:${String(t.getMinutes()).padStart(2,'0')} ${t.getHours()<12?'AM':'PM'}`});
+  saveCalLog(l);renderCals();
+}
+function removeCal(i){const l=loadCals();l.splice(i,1);saveCalLog(l);renderCals();}
+function addCalCustom(){
+  const label=(document.getElementById('cal-label')?.value||'').trim();
+  const cal=parseInt(document.getElementById('cal-amt')?.value||0);
+  if(!label||!cal||cal<=0)return;
+  addCal(label,cal);
+  document.getElementById('cal-label').value='';
+  document.getElementById('cal-amt').value='';
+}
+function totalCals(){return loadCals().reduce((s,e)=>s+(e.cal||0),0)}
+function renderCals(){
+  if(!prof)return;
+  const target=PROFILES[prof].cal||0;
+  const calSection=document.getElementById('cal-section');
+  if(calSection)calSection.style.display=target>0?'block':'none';
+  if(!target)return;
+  const total=totalCals();
+  const pct=Math.min(total/target,1)*100;
+  const bar=document.getElementById('cal-bar');
+  if(bar)bar.style.width=pct+'%';
+  const info=document.getElementById('cal-info');
+  if(info){
+    const left=Math.max(0,target-total);
+    info.textContent=total.toLocaleString()+' / '+target.toLocaleString()+' cal'+(left>0?' · '+left.toLocaleString()+' to go':' ✓ Goal reached!');
+  }
+  const log=loadCals();
+  const logEl=document.getElementById('cal-log');
+  if(logEl){
+    if(!log.length){logEl.innerHTML='<div class="p-empty">No calories logged yet.</div>';}
+    else{logEl.innerHTML=log.map((e,i)=>`<div class="p-entry"><div style="flex:1;min-width:0"><div class="p-entry-lbl">${e.label}</div><div class="p-entry-time">${e.time}</div></div><span class="p-grams" style="color:var(--gold)">${e.cal}</span><button class="p-del" onclick="removeCal(${i})">✕</button></div>`).join('');}
+  }
+}
+
+// ── Export ────────────────────────────────────
+function exportData(){
+  if(!prof)return;
+  const out={profile:prof,name:PROFILES[prof].name,exported:new Date().toISOString(),data:{}};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith(prof+'_')){
+      try{out.data[k]=JSON.parse(localStorage.getItem(k));}
+      catch(e){out.data[k]=localStorage.getItem(k);}
+    }
+  }
+  const s=JSON.stringify(out,null,2);
+  const copy=(str)=>{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(str).then(()=>alert('✅ '+PROFILES[prof].name+"'s data copied to clipboard!")).catch(()=>fallbackCopy(str));
+    }else{fallbackCopy(str);}
+  };
+  const fallbackCopy=(str)=>{
+    const ta=document.createElement('textarea');
+    ta.value=str;ta.style.cssText='position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');alert('✅ Data copied to clipboard!');}
+    catch(e){alert('Copy failed — open browser console and run exportData() to see data.');}
+    document.body.removeChild(ta);
+  };
+  copy(s);
 }
 
 // ── Init ──────────────────────────────────────
