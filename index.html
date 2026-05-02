@@ -514,8 +514,9 @@ function updateHeader(){
     badge.textContent='DONE';
     badge.style.cssText='background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3)';
   } else {
-    const wo=PROFILES[prof].workouts.find(w=>w.day===day);
-    hdrDay.textContent=`Day ${day} / 75  ·  ${wo?wo.date:''}`;
+    const _d=new Date(START.getTime()+(day-1)*86400000);
+    const _mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    hdrDay.textContent=`Day ${day} / 75  ·  ${_mn[_d.getMonth()]} ${_d.getDate()}`;
     const c=ph===1?'74,158,255':ph===2?'0,201,167':'233,69,96';
     badge.textContent=phaseName(ph);
     badge.style.cssText=`background:rgba(${c},.1);color:${phaseColor(ph)};border:1px solid rgba(${c},.28)`;
@@ -541,7 +542,7 @@ function renderToday(){
     preWrap.style.display='none';ringWrap.style.display='flex';
   }
   const saved=loadDay(todayKey);
-  checks=saved&&saved.checks?[...saved.checks]:new Array(RULES.length).fill(false);
+  checks=saved&&saved.checks?[...saved.checks]:new Array(PROFILES[prof].rules.length).fill(false);
   // pre-challenge and post-challenge: still show the list for testing
   rebuildRules();updateRing();updateBanner();
 }
@@ -570,7 +571,7 @@ function toggle(i){
 }
 
 function updateRing(){
-  const done=checks.filter(Boolean).length,total=RULES.length;
+  const done=checks.filter(Boolean).length,total=PROFILES[prof]?PROFILES[prof].rules.length:checks.length;
   const r=60,circ=2*Math.PI*r,frac=done/total;
   const fg=document.getElementById('ring-fg');
   fg.style.strokeDasharray=circ;fg.style.strokeDashoffset=circ*(1-frac);
